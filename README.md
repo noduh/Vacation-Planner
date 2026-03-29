@@ -4,8 +4,8 @@ A modern, high-end Python desktop application for planning vacations and road tr
 
 ## ✨ Features
 - **Modern Dashboard**: A vibrant, purple-themed GUI designed for focus and readability.
-- **Destination Engine**: Granular selection control—toggle entire categories or specific locations with ease.
-- **Professional Exports**: Generates a standalone, mobile-responsive HTML map using a custom **Trip Explorer** sidebar.
+- **Simplified Workflow**: Direct CSV import—quickly transform your entire destination list into a map.
+- **Professional Exports**: Generates a standalone, mobile-responsive HTML map with a custom **Trip Explorer** sidebar and category toggles.
 - **Glassmorphism Design**: High-end translucent UI elements across both the app and exported documents.
 - **Smart Routing**: Fetches driving directions and travel times automatically via the OSRM API.
 

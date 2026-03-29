@@ -253,39 +253,51 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     .trip-dashboard h1 { margin: 0; font-size: 20px; font-weight: 600; color: #e9d5ff; }
     .trip-dashboard p { margin: 5px 0 0 0; font-size: 13px; opacity: 0.8; color: #f3e8ff; }
 
-    /* Single always-fixed sidebar toggle button */
-    .sidebar-toggle-btn {
+    /* ── Explorer wrapper: panel + button side-by-side ── */
+    .explorer-wrapper {
         position: absolute;
         top: 20px;
         right: 20px;
-        z-index: 1003;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: rgba(26, 12, 58, 0.85);
+        bottom: 20px;
+        z-index: 1001;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 8px;
+        pointer-events: none;   /* let map clicks through the gap */
+    }
+
+    /* Toggle button — always visible, never moves */
+    .explorer-toggle-btn {
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(26, 12, 58, 0.88);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(168, 85, 247, 0.3);
+        border: 1px solid rgba(168, 85, 247, 0.35);
         color: #e9d5ff;
-        font-size: 18px;
+        font-size: 20px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.45);
         transition: background 0.2s;
+        pointer-events: auto;
+        order: 2;   /* button on the right */
+        flex-shrink: 0;
     }
-    .sidebar-toggle-btn:hover { background: rgba(168, 85, 247, 0.3); }
+    .explorer-toggle-btn:hover { background: rgba(168, 85, 247, 0.3); }
 
-    /* Custom Trip Explorer Sidebar (Right) — starts 52px from right to leave room for toggle btn */
+    /* Sidebar panel — slides in/out by animating max-width */
     .trip-explorer {
-        position: absolute;
-        top: 20px;
-        right: 60px;
-        bottom: 20px;
-        z-index: 1001;
+        order: 1;   /* panel on the left of the button */
+        max-width: 320px;
         width: 320px;
-        background: rgba(26, 12, 58, 0.85);
+        height: 100%;
+        background: rgba(26, 12, 58, 0.88);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(168, 85, 247, 0.3);
@@ -296,17 +308,23 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        transform: translateX(0);
-        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        clip-path: inset(0 round 20px);
+        transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity    0.25s ease,
+                    padding    0.35s ease;
+        pointer-events: auto;
     }
     .trip-explorer.collapsed {
-        transform: translateX(calc(100% + 80px));
+        max-width: 0;
+        opacity: 0;
+        padding-left: 0;
+        padding-right: 0;
         pointer-events: none;
+        border-color: transparent;
     }
 
     .explorer-header {
         font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #e9d5ff;
+        white-space: nowrap;   /* prevent wrapping during animation */
     }
     .explorer-content { flex: 1; overflow-y: auto; padding-right: 5px; }
 
@@ -355,31 +373,49 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     .style-dropdown:focus { border-color: #a855f7; }
     .style-dropdown option { background: #1a0c3a; color: white; }
 
-    /* Mobile Interaction */
+    /* Mobile */
     @media (max-width: 600px) {
         .trip-dashboard { width: calc(100% - 40px); left: 20px; top: 10px; padding: 12px 15px; }
-        .sidebar-toggle-btn { top: auto; bottom: 20px; right: 20px; }
-        .trip-explorer { 
-            position: fixed; top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 55vh; 
-            border-radius: 20px 20px 0 0; z-index: 2000; border-bottom: none;
-            transform: translateY(0);
-            clip-path: none;
+        .explorer-wrapper {
+            top: auto;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0;
+        }
+        .explorer-toggle-btn {
+            order: 1;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            top: auto;
+        }
+        .trip-explorer {
+            order: 2;
+            width: 100%;
+            max-width: 100%;
+            height: 55vh;
+            border-radius: 20px 20px 0 0;
+            border-bottom: none;
         }
         .trip-explorer.collapsed {
-            transform: translateY(100%);
+            max-width: 100%;
+            height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
         }
     }
     </style>
     """
     m.get_root().header.add_child(folium.Element(premium_css))
 
-    # Single fixed toggle button (always top:20px right:20px — same position open or closed)
+    # Sidebar HTML: flex wrapper holds [panel] [button] side by side
     explorer_html = """
-    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()">&#8249;</button>
+    <div class="explorer-wrapper">
     <div class="trip-explorer" id="tripExplorer">
-        <div class="explorer-header">
-            <span>Trip Explorer</span>
-        </div>
+        <div class="explorer-header">Trip Explorer</div>
         <div class="explorer-content">
     """
 
@@ -408,7 +444,6 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
 
         explorer_html += "</div></div>"
 
-    # Map style dropdown + collapse re-open button
     explorer_html += """
         </div>
         <div class="style-selector">
@@ -420,16 +455,16 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
             </select>
         </div>
     </div>
-
-    <!-- Single toggle button below is defined above as .sidebar-toggle-btn -->
+    <!-- Toggle button: right side of wrapper, always visible -->
+    <button class="explorer-toggle-btn" id="explorerToggleBtn" onclick="toggleSidebar()">&#10005;</button>
+    </div>
 
     <script>
     function toggleSidebar() {
         var explorer = document.getElementById('tripExplorer');
-        var btn = document.getElementById('sidebarToggleBtn');
+        var btn = document.getElementById('explorerToggleBtn');
         var collapsed = explorer.classList.toggle('collapsed');
-        // Point right when open (to collapse), left when closed (to open)
-        btn.innerHTML = collapsed ? '&#8250;' : '&#8249;';
+        btn.innerHTML = collapsed ? '&#9776;' : '&#10005;';
     }
 
     function switchMapStyle(style) {
