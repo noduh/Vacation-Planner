@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import io
 import os
-from streamlit_folium import st_folium
+import streamlit.components.v1 as components
 
 from api_client import get_coordinates
 from map_renderer import build_map
@@ -73,7 +73,12 @@ if start_lat and start_lon and 'locations_df' in st.session_state:
 
 if 'interactive_map' in st.session_state:
     st.markdown("### Output Map")
-    st_folium(st.session_state.interactive_map, width="100%", height=600)
+    
+    # We use Streamlit native HTML component to ensure our custom Leaflet
+    # javascript executes perfectly in the web app, exactly as it does
+    # in the exported HTML!
+    styled_map = st.session_state.interactive_map.get_root().render()
+    components.html(styled_map, width=None, height=600)
     
     st.download_button(
         label="📥 Download Map as HTML (Mobile Friendly)",
