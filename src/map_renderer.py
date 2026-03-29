@@ -289,7 +289,11 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         order: 2;   /* button on the right */
         flex-shrink: 0;
     }
-    .explorer-toggle-btn:hover { background: rgba(168, 85, 247, 0.3); }
+    .explorer-toggle-btn:hover { 
+        background: rgba(168, 85, 247, 0.5); 
+        color: #ffffff;
+        border-color: rgba(168, 85, 247, 0.6);
+    }
 
     /* Sidebar panel — slides in/out by animating max-width */
     .trip-explorer {
@@ -414,7 +418,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     # Sidebar HTML: flex wrapper holds [panel] [button] side by side
     explorer_html = """
     <div class="explorer-wrapper">
-    <div class="trip-explorer" id="tripExplorer">
+    <div class="trip-explorer collapsed" id="tripExplorer">
         <div class="explorer-header">Trip Explorer</div>
         <div class="explorer-content">
     """
@@ -456,7 +460,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         </div>
     </div>
     <!-- Toggle button: right side of wrapper, always visible -->
-    <button class="explorer-toggle-btn" id="explorerToggleBtn" onclick="toggleSidebar()">&#10005;</button>
+    <button class="explorer-toggle-btn" id="explorerToggleBtn" onclick="toggleSidebar()">&#9776;</button>
     </div>
 
     <script>
