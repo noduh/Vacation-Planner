@@ -284,10 +284,11 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         align-items: center;
         justify-content: center;
         box-shadow: 0 8px 30px rgba(0,0,0,0.45);
-        transition: background 0.2s;
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
         pointer-events: auto;
         order: 2;   /* button on the right */
         flex-shrink: 0;
+        z-index: 2100;
     }
     .explorer-toggle-btn:hover { 
         background: rgba(168, 85, 247, 0.5); 
@@ -389,13 +390,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
             align-items: stretch;
             gap: 0;
         }
-        .explorer-toggle-btn {
-            order: 1;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            top: auto;
-        }
+        /* Removed mobile override to keep button at the top-right */
         .trip-explorer {
             order: 2;
             width: 100%;
