@@ -73,6 +73,8 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
 
     js_click_handlers = []
     all_route_vars = []
+    marker_vars_by_cat = {}  # { cat_id: [marker_var, ...] }
+    route_vars_by_marker = {}  # { marker_var: route_var }
     
     # Create FeatureGroups for each category
     categories = locations_df['category'].unique().tolist() if 'category' in locations_df.columns else ['Uncategorized']
@@ -108,88 +110,115 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
             icon=folium.Icon(color=pin_color, icon="info-sign", prefix='glyphicon')
         )
         marker.add_to(category_groups[category])
+        cat_id = category.replace(" ", "_").lower()
+        if cat_id not in marker_vars_by_cat:
+            marker_vars_by_cat[cat_id] = []
+        marker_vars_by_cat[cat_id].append(marker.get_name())
         
         if route_coords:
             route_line = folium.PolyLine(
                 route_coords,
-                color="#a855f7", # Purple route
+                color="#a855f7",
                 weight=5,
-                opacity=0.0 # Initially hidden
+                opacity=0.0
             )
             route_line.add_to(category_groups[category])
             
             route_var = route_line.get_name()
             marker_var = marker.get_name()
             all_route_vars.append(route_var)
+            route_vars_by_marker[marker_var] = route_var
             
             js_click_handlers.append(f"""
             {marker_var}.on('click', function(e) {{
-                // Hide all routes first
-                all_routes_arr.forEach(function(r) {{
-                    r.setStyle({{opacity: 0.0}});
-                }});
-                // Show this specific route
+                all_routes_arr.forEach(function(r) {{ r.setStyle({{opacity: 0.0}}); }});
                 {route_var}.setStyle({{opacity: 0.8}});
             }});
             """)
 
+    # Build marker registry JS — exposes per-location marker vars for checkbox toggling
+    marker_registry_lines = []
+    for cat_id, mvars in marker_vars_by_cat.items():
+        for i, mvar in enumerate(mvars):
+            route_var = route_vars_by_marker.get(mvar, "null")
+            marker_registry_lines.append(
+                f"window._markers.push({{catId:'{cat_id}', idx:{i}, marker:{mvar}, route:{route_var}}});"
+            )
+
     if all_route_vars:
         routes_array_str = "var all_routes_arr = [" + ", ".join(all_route_vars) + "];"
         handlers_str = "\n".join(js_click_handlers)
-        
-        custom_js = f"""
-        <script>
-        function toggleLayer(layerVar, checked) {{
-            if (checked) {{
-                layerVar.addTo(current_map);
-            }} else {{
-                current_map.removeLayer(layerVar);
-            }}
-        }}
+    else:
+        routes_array_str = "var all_routes_arr = [];"
+        handlers_str = ""
 
-        function toggleCategory(catId, checked) {{
-            const catGroup = window['group_' + catId];
-            if (catGroup) {{
-                if (checked) catGroup.addTo(current_map);
-                else current_map.removeLayer(catGroup);
-            }}
-            // Sync children checkboxes
-            document.querySelectorAll('.cat-' + catId + '-item').forEach(cb => {{
-                cb.checked = checked;
-            }});
-        }}
+    # Find map early so toggleCategory/toggleLocation can use current_map immediately
+    find_map_js = """
+    <script>
+    window._markers = [];
+    // Resolve map reference as soon as Leaflet initialises it
+    (function waitForMap() {
+        for (var key in window) {
+            if (key.startsWith('map_') && window[key] instanceof L.Map) {
+                window.current_map = window[key]; return;
+            }
+        }
+        setTimeout(waitForMap, 50);
+    })();
 
-        function setupVacationMapInteraction() {{
-            if (window.map_initialized) return;
-            
-            // Find the map instance
-            for (var key in window) {{
-                if (key.startsWith("map_") && window[key] instanceof L.Map) {{
-                    window.current_map = window[key];
-                    break;
-                }}
-            }}
-            
-            if (!current_map) return;
-            window.map_initialized = true;
-            
-            {routes_array_str}
-            {handlers_str}
-        }}
+    function toggleCategory(catId, checked) {
+        var catGroup = window['group_' + catId];
+        if (catGroup) {
+            if (checked) catGroup.addTo(window.current_map);
+            else window.current_map.removeLayer(catGroup);
+        }
+        // Sync every location checkbox in this category
+        document.querySelectorAll('.loc-cb-' + catId).forEach(function(cb) {
+            cb.checked = checked;
+        });
+    }
 
-        document.addEventListener("DOMContentLoaded", function() {{
-            setTimeout(setupVacationMapInteraction, 500);
-        }});
-        </script>
-        """
-        m.get_root().html.add_child(folium.Element(custom_js))
+    function toggleLocation(catId, idx, checked) {
+        var entry = window._markers.find(function(m) { return m.catId === catId && m.idx === idx; });
+        if (!entry) return;
+        if (checked) {
+            entry.marker.addTo(window.current_map);
+        } else {
+            window.current_map.removeLayer(entry.marker);
+            if (entry.route && entry.route !== null) {
+                entry.route.setStyle({opacity: 0.0});
+            }
+        }
+        // Update category master checkbox
+        var anyChecked = Array.from(document.querySelectorAll('.loc-cb-' + catId)).some(function(cb) { return cb.checked; });
+        var catCb = document.querySelector('.cat-cb-' + catId);
+        if (catCb) catCb.checked = anyChecked;
+    }
+
+    function setupRouteClicks() {
+        if (window.routes_initialized) return;
+        if (!window.current_map) { setTimeout(setupRouteClicks, 100); return; }
+        window.routes_initialized = true;
+        """ + routes_array_str + """
+        """ + handlers_str + """
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            """ + "\n".join(marker_registry_lines) + """
+            setupRouteClicks();
+        }, 600);
+    });
+    </script>
+    """
+    m.get_root().html.add_child(folium.Element(find_map_js))
 
     # --- PREMIUM STYLING INJECTION (PURPLE) ---
     premium_css = """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
 
-    body { font-family: 'Outfit', sans-serif !important; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif !important; margin: 0; padding: 0; overflow: hidden; }
     
     /* Scrollbar Styling */
     ::-webkit-scrollbar { width: 6px; }
@@ -217,31 +246,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     .trip-dashboard h1 { margin: 0; font-size: 20px; font-weight: 600; color: #e9d5ff; }
     .trip-dashboard p { margin: 5px 0 0 0; font-size: 13px; opacity: 0.8; color: #f3e8ff; }
 
-    /* Sidebar Toggle Button */
-    .sidebar-toggle {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        z-index: 1002;
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background: rgba(26, 12, 58, 0.85);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(168, 85, 247, 0.3);
-        color: #e9d5ff;
-        font-size: 20px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-        transition: all 0.3s ease;
-    }
-    .sidebar-toggle:hover { background: rgba(168, 85, 247, 0.3); }
-    .sidebar-toggle.active { right: 352px; }
-
+    /* Sidebar collapse: no external toggle button, button lives in header */
     /* Custom Trip Explorer Sidebar (Right) */
     .trip-explorer {
         position: absolute;
@@ -263,12 +268,26 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         overflow: hidden;
         transform: translateX(0);
         transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Keep collapsed panel from causing page overflow */
+        clip-path: inset(0 round 20px);
     }
     .trip-explorer.collapsed {
         transform: translateX(calc(100% + 40px));
+        /* pointer-events off so map is interactive when hidden */
+        pointer-events: none;
     }
 
-    .explorer-header { font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #e9d5ff; display: flex; align-items: center; justify-content: space-between; }
+    .explorer-header {
+        font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #e9d5ff;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .explorer-collapse-btn {
+        width: 28px; height: 28px; border-radius: 8px; cursor: pointer;
+        background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.25);
+        color: #e9d5ff; font-size: 16px; display: flex; align-items: center; justify-content: center;
+        transition: background 0.2s; flex-shrink: 0;
+    }
+    .explorer-collapse-btn:hover { background: rgba(168, 85, 247, 0.3); }
     .explorer-content { flex: 1; overflow-y: auto; padding-right: 5px; }
 
     .category-group { margin-bottom: 12px; border-radius: 12px; background: rgba(168, 85, 247, 0.05); overflow: hidden; }
@@ -319,12 +338,11 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     /* Mobile Interaction */
     @media (max-width: 600px) {
         .trip-dashboard { width: calc(100% - 40px); left: 20px; top: 10px; padding: 12px 15px; }
-        .sidebar-toggle { top: auto; bottom: 20px; right: 20px; }
-        .sidebar-toggle.active { right: 20px; }
         .trip-explorer { 
             position: fixed; top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 55vh; 
             border-radius: 20px 20px 0 0; z-index: 2000; border-bottom: none;
             transform: translateY(0);
+            clip-path: none;
         }
         .trip-explorer.collapsed {
             transform: translateY(100%);
@@ -335,43 +353,46 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     m.get_root().header.add_child(folium.Element(premium_css))
 
     # Build the Explorer Sidebar HTML
-    
-    explorer_html = f"""
-    <button class="sidebar-toggle active" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+    # Also expose category groups to JS (for toggleCategory)
+    for cat, group in category_groups.items():
+        cat_id = cat.replace(" ", "_").lower()
+        m.get_root().html.add_child(folium.Element(f"<script>window['group_{cat_id}'] = {group.get_name()};</script>"))
+
+    explorer_html = """
     <div class="trip-explorer" id="tripExplorer">
         <div class="explorer-header">
             <span>Trip Explorer</span>
+            <button class="explorer-collapse-btn" id="explorerCollapseBtn" onclick="toggleSidebar()">&#8250;</button>
         </div>
         <div class="explorer-content">
     """
-    
+
     for cat, group in category_groups.items():
         cat_id = cat.replace(" ", "_").lower()
-        # Add the group to window for JS access
-        m.get_root().html.add_child(folium.Element(f"<script>window['group_{cat_id}'] = {group.get_name()};</script>"))
-        
+        cat_markers = marker_vars_by_cat.get(cat_id, [])
+
         explorer_html += f"""
         <div class="category-group" id="catGroup_{cat_id}">
             <div class="category-label" onclick="document.getElementById('locList_{cat_id}').classList.toggle('active'); document.getElementById('catGroup_{cat_id}').classList.toggle('open')">
-                <input type="checkbox" checked onclick="event.stopPropagation(); toggleCategory('{cat_id}', this.checked)">
+                <input type="checkbox" checked class="cat-cb-{cat_id}" onclick="event.stopPropagation(); toggleCategory('{cat_id}', this.checked)">
                 <div class="category-title">{cat}</div>
                 <span class="category-toggle-icon">&#9660;</span>
             </div>
             <div class="location-list" id="locList_{cat_id}">
         """
-        
+
         cat_items = locations_df[locations_df['category'] == cat] if 'category' in locations_df.columns else locations_df
-        for idx, row in cat_items.iterrows():
+        for i, (idx, row) in enumerate(cat_items.iterrows()):
             explorer_html += f"""
                 <div class="location-item">
-                    <input type="checkbox" checked class="cat-{cat_id}-item">
+                    <input type="checkbox" checked class="loc-cb-{cat_id}" onclick="toggleLocation('{cat_id}', {i}, this.checked)">
                     <span>{row['label']}</span>
                 </div>
             """
-        
+
         explorer_html += "</div></div>"
 
-    # Add Map style dropdown
+    # Map style dropdown + collapse re-open button
     explorer_html += """
         </div>
         <div class="style-selector">
@@ -383,22 +404,31 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
             </select>
         </div>
     </div>
-    
+
+    <!-- Re-open button visible only when collapsed -->
+    <button id="explorerOpenBtn" onclick="toggleSidebar()"
+        style="display:none; position:absolute; top:20px; right:20px; z-index:1002;
+               width:44px; height:44px; border-radius:12px; cursor:pointer;
+               background:rgba(26,12,58,0.85); border:1px solid rgba(168,85,247,0.3);
+               color:#e9d5ff; font-size:22px; align-items:center; justify-content:center;
+               box-shadow:0 8px 30px rgba(0,0,0,0.4); backdrop-filter:blur(16px);
+               -webkit-backdrop-filter:blur(16px);">&#8249;</button>
+
     <script>
     function toggleSidebar() {
         var explorer = document.getElementById('tripExplorer');
-        var btn = document.getElementById('sidebarToggle');
-        explorer.classList.toggle('collapsed');
-        btn.classList.toggle('active');
-        btn.textContent = explorer.classList.contains('collapsed') ? '\u2630' : '\u2715';
+        var colBtn   = document.getElementById('explorerCollapseBtn');
+        var openBtn  = document.getElementById('explorerOpenBtn');
+        var collapsed = explorer.classList.toggle('collapsed');
+        colBtn.innerHTML = collapsed ? '&#8249;' : '&#8250;';
+        openBtn.style.display = collapsed ? 'flex' : 'none';
     }
 
     function switchMapStyle(style) {
-        current_map.eachLayer(function(l) {
-            if (l instanceof L.TileLayer) current_map.removeLayer(l);
+        window.current_map.eachLayer(function(l) {
+            if (l instanceof L.TileLayer) window.current_map.removeLayer(l);
         });
-        
-        let url, attr;
+        var url, attr;
         if (style === 'Light') {
             url = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
             attr = '&copy; CARTO';
@@ -409,11 +439,12 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
             url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
             attr = 'Tiles &copy; Esri';
         }
-        L.tileLayer(url, {attribution: attr}).addTo(current_map);
+        L.tileLayer(url, {attribution: attr}).addTo(window.current_map);
     }
     </script>
     """
     m.get_root().html.add_child(folium.Element(explorer_html))
+
 
     dashboard_html = f"""
     <div class="trip-dashboard">

@@ -75,7 +75,6 @@ class VacationPlannerApp(ctk.CTk):
         self.dest_card.grid(row=2, column=0, padx=40, pady=10, sticky="nsew")
         self.grid_rowconfigure(2, weight=1) # Allow this row to grow
         self.dest_card.grid_columnconfigure(0, weight=1)
-        self.dest_card.grid_rowconfigure(2, weight=1)
 
         self.label2 = ctk.CTkLabel(self.dest_card, text="2. MANAGE DESTINATIONS", font=ctk.CTkFont(size=13, weight="bold"), text_color="#a1a1aa")
         self.label2.grid(row=0, column=0, padx=25, pady=(20, 5), sticky="w")
