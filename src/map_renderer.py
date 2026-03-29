@@ -152,63 +152,72 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         routes_array_str = "var all_routes_arr = [];"
         handlers_str = ""
 
-    # Find map early so toggleCategory/toggleLocation can use current_map immediately
-    find_map_js = """
+    # Build group registration JS - must run AFTER folium's main script defines the variables.
+    # Folium's JS is at the bottom of <body>, so we defer via setTimeout.
+    group_reg_lines = []
+    for cat, group in category_groups.items():
+        cat_id = cat.replace(" ", "_").lower()
+        group_reg_lines.append(f"window['group_{cat_id}'] = {group.get_name()};")
+    group_registrations = "\n        ".join(group_reg_lines)
+
+    deferred_setup = "\n        ".join(marker_registry_lines)
+
+    find_map_js = f"""
     <script>
     window._markers = [];
-    // Resolve map reference as soon as Leaflet initialises it
-    (function waitForMap() {
-        for (var key in window) {
-            if (key.startsWith('map_') && window[key] instanceof L.Map) {
+    // Poll until Leaflet map object is available
+    (function waitForMap() {{
+        for (var key in window) {{
+            if (key.startsWith('map_') && window[key] instanceof L.Map) {{
                 window.current_map = window[key]; return;
-            }
-        }
+            }}
+        }}
         setTimeout(waitForMap, 50);
-    })();
+    }})();
 
-    function toggleCategory(catId, checked) {
+    function toggleCategory(catId, checked) {{
         var catGroup = window['group_' + catId];
-        if (catGroup) {
+        if (catGroup) {{
             if (checked) catGroup.addTo(window.current_map);
             else window.current_map.removeLayer(catGroup);
-        }
-        // Sync every location checkbox in this category
-        document.querySelectorAll('.loc-cb-' + catId).forEach(function(cb) {
+        }}
+        // Sync all location checkboxes + their opacity
+        document.querySelectorAll('.loc-cb-' + catId).forEach(function(cb) {{
             cb.checked = checked;
-        });
-    }
+        }});
+    }}
 
-    function toggleLocation(catId, idx, checked) {
-        var entry = window._markers.find(function(m) { return m.catId === catId && m.idx === idx; });
+    function toggleLocation(catId, idx, checked) {{
+        var entry = window._markers.find(function(m) {{ return m.catId === catId && m.idx === idx; }});
         if (!entry) return;
-        if (checked) {
-            entry.marker.addTo(window.current_map);
-        } else {
-            window.current_map.removeLayer(entry.marker);
-            if (entry.route && entry.route !== null) {
-                entry.route.setStyle({opacity: 0.0});
-            }
-        }
+        // Use setOpacity so the marker stays in its FeatureGroup (category toggle still works)
+        entry.marker.setOpacity(checked ? 1 : 0);
+        if (entry.route && entry.route !== null) {{
+            if (!checked) entry.route.setStyle({{opacity: 0.0}});
+        }}
         // Update category master checkbox
-        var anyChecked = Array.from(document.querySelectorAll('.loc-cb-' + catId)).some(function(cb) { return cb.checked; });
+        var anyChecked = Array.from(document.querySelectorAll('.loc-cb-' + catId)).some(function(cb) {{ return cb.checked; }});
         var catCb = document.querySelector('.cat-cb-' + catId);
         if (catCb) catCb.checked = anyChecked;
-    }
+    }}
 
-    function setupRouteClicks() {
+    function setupRouteClicks() {{
         if (window.routes_initialized) return;
-        if (!window.current_map) { setTimeout(setupRouteClicks, 100); return; }
+        if (!window.current_map) {{ setTimeout(setupRouteClicks, 100); return; }}
         window.routes_initialized = true;
-        """ + routes_array_str + """
-        """ + handlers_str + """
-    }
+        {routes_array_str}
+        {handlers_str}
+    }}
 
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            """ + "\n".join(marker_registry_lines) + """
+    document.addEventListener('DOMContentLoaded', function() {{
+        setTimeout(function() {{
+            // Register FeatureGroups (folium JS has run by now)
+            {group_registrations}
+            // Register individual markers
+            {deferred_setup}
             setupRouteClicks();
-        }, 600);
-    });
+        }}, 600);
+    }});
     </script>
     """
     m.get_root().html.add_child(folium.Element(find_map_js))
@@ -282,9 +291,9 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         display: flex; align-items: center; justify-content: space-between;
     }
     .explorer-collapse-btn {
-        width: 28px; height: 28px; border-radius: 8px; cursor: pointer;
+        width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
         background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.25);
-        color: #e9d5ff; font-size: 16px; display: flex; align-items: center; justify-content: center;
+        color: #e9d5ff; font-size: 18px; display: flex; align-items: center; justify-content: center;
         transition: background 0.2s; flex-shrink: 0;
     }
     .explorer-collapse-btn:hover { background: rgba(168, 85, 247, 0.3); }
@@ -353,10 +362,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     m.get_root().header.add_child(folium.Element(premium_css))
 
     # Build the Explorer Sidebar HTML
-    # Also expose category groups to JS (for toggleCategory)
-    for cat, group in category_groups.items():
-        cat_id = cat.replace(" ", "_").lower()
-        m.get_root().html.add_child(folium.Element(f"<script>window['group_{cat_id}'] = {group.get_name()};</script>"))
+    # Groups are now registered inside the deferred JS - no separate script tags needed.
 
     explorer_html = """
     <div class="trip-explorer" id="tripExplorer">
@@ -405,12 +411,12 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         </div>
     </div>
 
-    <!-- Re-open button visible only when collapsed -->
+    <!-- Re-open button: same size as collapse button -->
     <button id="explorerOpenBtn" onclick="toggleSidebar()"
         style="display:none; position:absolute; top:20px; right:20px; z-index:1002;
-               width:44px; height:44px; border-radius:12px; cursor:pointer;
+               width:32px; height:32px; border-radius:8px; cursor:pointer;
                background:rgba(26,12,58,0.85); border:1px solid rgba(168,85,247,0.3);
-               color:#e9d5ff; font-size:22px; align-items:center; justify-content:center;
+               color:#e9d5ff; font-size:18px; align-items:center; justify-content:center;
                box-shadow:0 8px 30px rgba(0,0,0,0.4); backdrop-filter:blur(16px);
                -webkit-backdrop-filter:blur(16px);">&#8249;</button>
 

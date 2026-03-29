@@ -102,7 +102,7 @@ class VacationPlannerApp(ctk.CTk):
         self.master_cb.pack(side="left")
 
         # Scrollable Destination Area (hidden until CSV loaded)
-        self.scroll_frame = ctk.CTkScrollableFrame(self.dest_card, fg_color="#1e1e1e", corner_radius=10, border_width=1, border_color="#333333")
+        self.scroll_frame = ctk.CTkScrollableFrame(self.dest_card, fg_color="#1e1e1e", corner_radius=10, border_width=1, border_color="#333333", height=250)
         self.scroll_frame.grid_columnconfigure(0, weight=1)
         self.dest_card.grid_rowconfigure(3, weight=1)
 
