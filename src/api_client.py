@@ -5,7 +5,7 @@ OSRM_BASE_URL = "http://router.project-osrm.org/route/v1/driving"
 
 def get_coordinates(address: str):
     """Geocodes an address to latitude and longitude."""
-    geolocator = Nominatim(user_agent="trip_planner_app")
+    geolocator = Nominatim(user_agent="vacation_planner_app")
     try:
         location = geolocator.geocode(address)
         if location:

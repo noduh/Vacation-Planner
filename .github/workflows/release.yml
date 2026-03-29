@@ -42,7 +42,7 @@ jobs:
     - name: Build executable (Linux / macOS)
       if: runner.os != 'Windows'
       run: |
-        pyinstaller --noconfirm --onefile --windowed --name "TripPlanner-${{ runner.os }}" \
+        pyinstaller --noconfirm --onefile --windowed --name "VacationPlanner-${{ runner.os }}" \
           --paths src \
           --hidden-import api_client \
           --hidden-import map_renderer \
@@ -57,7 +57,7 @@ jobs:
     - name: Build executable (Windows)
       if: runner.os == 'Windows'
       run: |
-        pyinstaller --noconfirm --onefile --windowed --name "TripPlanner-${{ runner.os }}" `
+        pyinstaller --noconfirm --onefile --windowed --name "VacationPlanner-${{ runner.os }}" `
           --paths src `
           --hidden-import api_client `
           --hidden-import map_renderer `
@@ -74,9 +74,9 @@ jobs:
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
-          echo "file=dist/TripPlanner-Windows.exe" >> $GITHUB_OUTPUT
+          echo "file=dist/VacationPlanner-Windows.exe" >> $GITHUB_OUTPUT
         else
-          echo "file=dist/TripPlanner-$RUNNER_OS" >> $GITHUB_OUTPUT
+          echo "file=dist/VacationPlanner-$RUNNER_OS" >> $GITHUB_OUTPUT
         fi
 
     - name: Attach Binary to GitHub Release
@@ -92,5 +92,5 @@ jobs:
       uses: actions/upload-artifact@v4
       if: github.event_name == 'workflow_dispatch'
       with:
-        name: TripPlanner-${{ runner.os }}
+        name: VacationPlanner-${{ runner.os }}
         path: ${{ steps.binary_name.outputs.file }}

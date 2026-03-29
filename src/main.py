@@ -14,16 +14,16 @@ from map_renderer import build_map
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
-class TripPlannerApp(ctk.CTk):
+class VacationPlannerApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("Trip Planning Map Generator")
+        self.title("Vacation Planning Map Generator")
         self.geometry("600x650")
         self.grid_columnconfigure(0, weight=1)
 
         # Title Output
-        self.title_label = ctk.CTkLabel(self, text="Trip Planning Map Generator", font=ctk.CTkFont(size=24, weight="bold"))
+        self.title_label = ctk.CTkLabel(self, text="Vacation Planning Map Generator", font=ctk.CTkFont(size=24, weight="bold"))
         self.title_label.grid(row=0, column=0, padx=20, pady=(20, 10))
 
         # 1. Start Location Frame
@@ -172,7 +172,7 @@ class TripPlannerApp(ctk.CTk):
             interactive_map = build_map(start_lat, start_lon, df)
 
             # Export HTML Document locally
-            output_file = os.path.join(self.base_dir, "trip_planning_map.html")
+            output_file = os.path.join(self.base_dir, "vacation_planning_map.html")
             
             # Delete if exists
             if os.path.exists(output_file):
@@ -194,5 +194,5 @@ class TripPlannerApp(ctk.CTk):
 
 
 if __name__ == "__main__":
-    app = TripPlannerApp()
+    app = VacationPlannerApp()
     app.mainloop()

@@ -1,6 +1,6 @@
-# Interactive Trip Planning Map
+# Interactive Vacation Planning Map
 
-An open-source Python native desktop application built with CustomTkinter and Folium to plan road trips. It takes a starting location and a CSV of destinations, plots them on an interactive Leaflet map, fetches driving directions using the public OSRM API, and provides an exportable standalone HTML map file.
+An open-source Python native desktop application built with CustomTkinter and Folium to plan road trip vacations. It takes a starting location and a CSV of destinations, plots them on an interactive Leaflet map, fetches driving directions using the public OSRM API, and provides an exportable standalone HTML map file.
 
 ## Setup and Installation
 
@@ -34,6 +34,6 @@ pip install -r requirements.txt
 ## Usage
 - Provide your starting address or coordinates.
 - Browse to upload your own CSV file containing headers `label`, `latitude`, `longitude`, and optionally `description`.
-- Click 'Generate Map' to automatically fetch routes and save your `trip_planning_map.html` offline map locally.
+- Click 'Generate Map' to automatically fetch routes and save your `vacation_planning_map.html` offline map locally.
 
 *Note: The native UI does not require a browser, but compiling with Pyinstaller on Linux requires `python3-tk`.*
