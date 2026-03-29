@@ -173,30 +173,43 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         setTimeout(waitForMap, 50);
     }})();
 
+    function setGroupVisibility(catId, isVisible) {{
+        var group = window['group_' + catId];
+        if (!group) return;
+        if (isVisible) group.addTo(window.current_map);
+        else window.current_map.removeLayer(group);
+
+        // Update UI buttons
+        document.getElementById('visView_' + catId).classList.toggle('active', isVisible);
+        document.getElementById('visHide_' + catId).classList.toggle('active', !isVisible);
+    }}
+
     function toggleCategory(catId, checked) {{
-        var catGroup = window['group_' + catId];
-        if (catGroup) {{
-            if (checked) catGroup.addTo(window.current_map);
-            else window.current_map.removeLayer(catGroup);
-        }}
-        // Sync all location checkboxes + their opacity
+        // \"All\" checkbox action - syncs child locations
         document.querySelectorAll('.loc-cb-' + catId).forEach(function(cb) {{
-            cb.checked = checked;
+            if (cb.checked !== checked) {{
+                cb.checked = checked;
+                cb.dispatchEvent(new Event('change'));
+            }}
         }});
+        // Note: As per user request, checking \"All\" does NOT automatically view the group.
     }}
 
     function toggleLocation(catId, idx, checked) {{
         var entry = window._markers.find(function(m) {{ return m.catId === catId && m.idx === idx; }});
         if (!entry) return;
-        // Use setOpacity so the marker stays in its FeatureGroup (category toggle still works)
+        
+        // Visibility logic: toggle opacity within the FeatureGroup
         entry.marker.setOpacity(checked ? 1 : 0);
         if (entry.route && entry.route !== null) {{
             if (!checked) entry.route.setStyle({{opacity: 0.0}});
         }}
-        // Update category master checkbox
-        var anyChecked = Array.from(document.querySelectorAll('.loc-cb-' + catId)).some(function(cb) {{ return cb.checked; }});
-        var catCb = document.querySelector('.cat-cb-' + catId);
-        if (catCb) catCb.checked = anyChecked;
+
+        // Sync \"All\" master checkbox
+        var allCbs = Array.from(document.querySelectorAll('.loc-cb-' + catId));
+        var allChecked = allCbs.every(function(cb) {{ return cb.checked; }});
+        var masterCb = document.getElementById('catAllCb_' + catId);
+        if (masterCb) masterCb.checked = allChecked;
     }}
 
     function setupRouteClicks() {{
@@ -327,16 +340,62 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
 
     .category-group { margin-bottom: 12px; border-radius: 12px; background: rgba(168, 85, 247, 0.05); overflow: hidden; }
     .category-label { 
-        padding: 12px 15px; background: rgba(168, 85, 247, 0.1); display: flex; align-items: center; cursor: pointer;
-        transition: background 0.2s; gap: 0;
+        padding: 10px 15px; 
+        background: rgba(168, 85, 247, 0.1); 
+        display: flex; 
+        align-items: center; 
+        cursor: pointer;
+        transition: background 0.2s; 
+        gap: 12px;
     }
     .category-label:hover { background: rgba(168, 85, 247, 0.2); }
-    .category-label input[type="checkbox"] { 
-        flex-shrink: 0; accent-color: #a855f7; width: 16px; height: 16px; cursor: pointer; margin: 0;
+
+    /* Category Controls (View/Hide + All Checkbox) */
+    .category-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    
+    .visibility-toggle {
+        display: flex;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        padding: 2px;
+        border: 1px solid rgba(168, 85, 247, 0.2);
     }
+    .vis-btn {
+        padding: 3px 6px;
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        opacity: 0.5;
+        color: #e9d5ff;
+    }
+    .vis-btn:hover { opacity: 0.8; background: rgba(168, 85, 247, 0.1); }
+    .vis-btn.active { 
+        opacity: 1; 
+        background: #a855f7; 
+        color: white; 
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+    }
+
+    .master-selection { 
+        display: flex; 
+        align-items: center; 
+        gap: 5px; 
+        font-size: 11px; 
+        font-weight: 600; 
+        opacity: 0.8;
+        color: #e9d5ff;
+    }
+    .master-selection input[type="checkbox"] { 
+        cursor: pointer; accent-color: #a855f7; width: 14px; height: 14px; margin: 0;
+    }
+
     .category-title { 
         flex: 1; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
-        margin-left: 10px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .category-toggle-icon { font-size: 10px; opacity: 0.5; transition: transform 0.3s; flex-shrink: 0; }
     
@@ -412,7 +471,16 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         explorer_html += f"""
         <div class="category-group" id="catGroup_{cat_id}">
             <div class="category-label" onclick="document.getElementById('locList_{cat_id}').classList.toggle('active'); document.getElementById('catGroup_{cat_id}').classList.toggle('open')">
-                <input type="checkbox" checked class="cat-cb-{cat_id}" onclick="event.stopPropagation(); toggleCategory('{cat_id}', this.checked)">
+                <div class="category-controls" onclick="event.stopPropagation()">
+                    <div class="visibility-toggle">
+                        <div class="vis-btn active" id="visView_{cat_id}" title="Show Group" onclick="setGroupVisibility('{cat_id}', true)">View</div>
+                        <div class="vis-btn" id="visHide_{cat_id}" title="Hide Group" onclick="setGroupVisibility('{cat_id}', false)">Hide</div>
+                    </div>
+                    <div class="master-selection">
+                        <input type="checkbox" checked id="catAllCb_{cat_id}" onclick="toggleCategory('{cat_id}', this.checked)">
+                        <span>All</span>
+                    </div>
+                </div>
                 <div class="category-title">{cat}</div>
                 <span class="category-toggle-icon">&#9660;</span>
             </div>
@@ -423,7 +491,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         for i, (idx, row) in enumerate(cat_items.iterrows()):
             explorer_html += f"""
                 <div class="location-item">
-                    <input type="checkbox" checked class="loc-cb-{cat_id}" onclick="toggleLocation('{cat_id}', {i}, this.checked)">
+                    <input type="checkbox" checked class="loc-cb-{cat_id}" onchange="toggleLocation('{cat_id}', {i}, this.checked)">
                     <span>{row['label']}</span>
                 </div>
             """
