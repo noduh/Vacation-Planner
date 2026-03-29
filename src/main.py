@@ -91,7 +91,9 @@ class VacationPlannerApp(ctk.CTk):
         self.browse_btn.grid(row=0, column=1)
 
         # Master Toggle Row (hidden until CSV loaded)
+        # Master Toggle Row
         self.master_row = ctk.CTkFrame(self.dest_card, fg_color="transparent")
+        self.master_row.grid(row=2, column=0, padx=25, pady=(5, 0), sticky="ew")
         
         self.master_var = tk.BooleanVar(value=True)
         self.master_cb = ctk.CTkCheckBox(self.master_row, text="SELECT ALL DESTINATIONS", variable=self.master_var, 
@@ -100,11 +102,17 @@ class VacationPlannerApp(ctk.CTk):
                                         fg_color=PURPLE_ACCENT, hover_color=PURPLE_HOVER,
                                         command=self.toggle_all_master)
         self.master_cb.pack(side="left")
+        self.master_row.grid_remove()  # Hidden until CSV loaded
 
-        # Scrollable Destination Area (hidden until CSV loaded)
+        # Scrollable Destination Area
         self.scroll_frame = ctk.CTkScrollableFrame(self.dest_card, fg_color="#1e1e1e", corner_radius=10, border_width=1, border_color="#333333", height=250)
+        self.scroll_frame.grid(row=3, column=0, padx=25, pady=(5, 25), sticky="nsew")
         self.scroll_frame.grid_columnconfigure(0, weight=1)
         self.dest_card.grid_rowconfigure(3, weight=1)
+
+        self.empty_label = ctk.CTkLabel(self.scroll_frame, text="Import a CSV to manage destinations.",
+                                        font=ctk.CTkFont(size=13, slant="italic"), text_color="#71717a")
+        self.empty_label.pack(pady=40)
 
         # 3. Action Zone
         self.action_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -167,9 +175,8 @@ class VacationPlannerApp(ctk.CTk):
             for widget in self.scroll_frame.winfo_children():
                 widget.destroy()
             
-            # Show the master toggle and scroll frame now that we have data
-            self.master_row.grid(row=2, column=0, padx=25, pady=(5, 0), sticky="ew")
-            self.scroll_frame.grid(row=3, column=0, padx=25, pady=(10, 25), sticky="nsew")
+            # Show master toggle now that we have data
+            self.master_row.grid()
             
             self.checklist_vars = {}
             self.current_df = pd.read_csv(csv_path)

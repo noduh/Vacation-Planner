@@ -58,10 +58,8 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     </script>
     """))
     
-    # Default to Light Mode
+    # Only add Light Mode initially — others are added on demand via switchMapStyle()
     tiles["Light Mode"].add_to(m)
-    tiles["Dark Mode"].add_to(m)
-    tiles["Satellite View"].add_to(m)
     
     # Start marker
     start_marker = folium.Marker(
@@ -255,12 +253,35 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     .trip-dashboard h1 { margin: 0; font-size: 20px; font-weight: 600; color: #e9d5ff; }
     .trip-dashboard p { margin: 5px 0 0 0; font-size: 13px; opacity: 0.8; color: #f3e8ff; }
 
-    /* Sidebar collapse: no external toggle button, button lives in header */
-    /* Custom Trip Explorer Sidebar (Right) */
-    .trip-explorer {
+    /* Single always-fixed sidebar toggle button */
+    .sidebar-toggle-btn {
         position: absolute;
         top: 20px;
         right: 20px;
+        z-index: 1003;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(26, 12, 58, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(168, 85, 247, 0.3);
+        color: #e9d5ff;
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        transition: background 0.2s;
+    }
+    .sidebar-toggle-btn:hover { background: rgba(168, 85, 247, 0.3); }
+
+    /* Custom Trip Explorer Sidebar (Right) — starts 52px from right to leave room for toggle btn */
+    .trip-explorer {
+        position: absolute;
+        top: 20px;
+        right: 60px;
         bottom: 20px;
         z-index: 1001;
         width: 320px;
@@ -277,26 +298,16 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         overflow: hidden;
         transform: translateX(0);
         transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        /* Keep collapsed panel from causing page overflow */
         clip-path: inset(0 round 20px);
     }
     .trip-explorer.collapsed {
-        transform: translateX(calc(100% + 40px));
-        /* pointer-events off so map is interactive when hidden */
+        transform: translateX(calc(100% + 80px));
         pointer-events: none;
     }
 
     .explorer-header {
         font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #e9d5ff;
-        display: flex; align-items: center; justify-content: space-between;
     }
-    .explorer-collapse-btn {
-        width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
-        background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.25);
-        color: #e9d5ff; font-size: 18px; display: flex; align-items: center; justify-content: center;
-        transition: background 0.2s; flex-shrink: 0;
-    }
-    .explorer-collapse-btn:hover { background: rgba(168, 85, 247, 0.3); }
     .explorer-content { flex: 1; overflow-y: auto; padding-right: 5px; }
 
     .category-group { margin-bottom: 12px; border-radius: 12px; background: rgba(168, 85, 247, 0.05); overflow: hidden; }
@@ -347,6 +358,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     /* Mobile Interaction */
     @media (max-width: 600px) {
         .trip-dashboard { width: calc(100% - 40px); left: 20px; top: 10px; padding: 12px 15px; }
+        .sidebar-toggle-btn { top: auto; bottom: 20px; right: 20px; }
         .trip-explorer { 
             position: fixed; top: auto; bottom: 0; left: 0; right: 0; width: 100%; height: 55vh; 
             border-radius: 20px 20px 0 0; z-index: 2000; border-bottom: none;
@@ -361,14 +373,12 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     """
     m.get_root().header.add_child(folium.Element(premium_css))
 
-    # Build the Explorer Sidebar HTML
-    # Groups are now registered inside the deferred JS - no separate script tags needed.
-
+    # Single fixed toggle button (always top:20px right:20px — same position open or closed)
     explorer_html = """
+    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()">&#8249;</button>
     <div class="trip-explorer" id="tripExplorer">
         <div class="explorer-header">
             <span>Trip Explorer</span>
-            <button class="explorer-collapse-btn" id="explorerCollapseBtn" onclick="toggleSidebar()">&#8250;</button>
         </div>
         <div class="explorer-content">
     """
@@ -411,23 +421,15 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         </div>
     </div>
 
-    <!-- Re-open button: same size as collapse button -->
-    <button id="explorerOpenBtn" onclick="toggleSidebar()"
-        style="display:none; position:absolute; top:20px; right:20px; z-index:1002;
-               width:32px; height:32px; border-radius:8px; cursor:pointer;
-               background:rgba(26,12,58,0.85); border:1px solid rgba(168,85,247,0.3);
-               color:#e9d5ff; font-size:18px; align-items:center; justify-content:center;
-               box-shadow:0 8px 30px rgba(0,0,0,0.4); backdrop-filter:blur(16px);
-               -webkit-backdrop-filter:blur(16px);">&#8249;</button>
+    <!-- Single toggle button below is defined above as .sidebar-toggle-btn -->
 
     <script>
     function toggleSidebar() {
         var explorer = document.getElementById('tripExplorer');
-        var colBtn   = document.getElementById('explorerCollapseBtn');
-        var openBtn  = document.getElementById('explorerOpenBtn');
+        var btn = document.getElementById('sidebarToggleBtn');
         var collapsed = explorer.classList.toggle('collapsed');
-        colBtn.innerHTML = collapsed ? '&#8249;' : '&#8250;';
-        openBtn.style.display = collapsed ? 'flex' : 'none';
+        // Point right when open (to collapse), left when closed (to open)
+        btn.innerHTML = collapsed ? '&#8250;' : '&#8249;';
     }
 
     function switchMapStyle(style) {
