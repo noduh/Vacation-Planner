@@ -1,5 +1,9 @@
-label,latitude,longitude,description
-Golden Gate Bridge,37.8199,-122.4783,Iconic suspension bridge with walking paths.
-Alcatraz Island,37.826977,-122.422955,Historic offshore prison.
-Fisherman's Wharf,37.8080,-122.4177,Bustling waterfront area with seafood and shops.
-Coit Tower,37.8024,-122.4058,Tower with panoramic city views and murals.
+label,latitude,longitude,description,category,color
+Golden Gate Bridge,37.8199,-122.4783,Iconic orange bridge,Sightseeing,orange
+Ghirardelli Square,37.8058,-122.4229,Historic chocolate factory,Dining,brown
+Fisherman's Wharf,37.8080,-122.4177,Busy tourist area with seafood,Sightseeing,blue
+The Fairmont San Francisco,37.7925,-122.4103,Luxury stay on Nob Hill,Accommodation,purple
+Pier 39,37.8087,-122.4098,Sea lions and shopping,Sightseeing,blue
+Ferry Building Marketplace,37.7955,-122.3937,Local artisanal foods,Dining,green
+Lombard Street,37.8021,-122.4187,The crookedest street,Sightseeing,red
+Alcatraz Island,37.8267,-122.4230,Historic former prison,Sightseeing,gray

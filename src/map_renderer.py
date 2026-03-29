@@ -31,12 +31,28 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
 
     js_click_handlers = []
     all_route_vars = []
+    
+    # Create FeatureGroups for each category
+    categories = locations_df['category'].unique().tolist() if 'category' in locations_df.columns else ['Uncategorized']
+    category_groups = {cat: folium.FeatureGroup(name=f" {cat}") for cat in categories}
+    
+    for cat_name, group in category_groups.items():
+        group.add_to(m)
 
     for index, row in locations_df.iterrows():
         lat, lon = row['latitude'], row['longitude']
         label = row['label']
         desc = row.get('description', '')
+        category = row.get('category', 'Uncategorized')
+        pin_color = row.get('color', 'red')
         
+        # Validate color for folium
+        valid_colors = ['red', 'blue', 'green', 'purple', 'orange', 'darkred', 'lightred', 'beige', 
+                        'darkblue', 'darkgreen', 'cadetblue', 'darkpurple', 'white', 'pink', 
+                        'lightblue', 'lightgreen', 'gray', 'black', 'lightgray']
+        if pin_color not in valid_colors:
+            pin_color = 'red'
+            
         route_coords, dist, duration = get_osrm_route(start_lat, start_lon, lat, lon)
         
         popup_html = f"<b>{label}</b><br>{desc}"
@@ -47,9 +63,9 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         marker = folium.Marker(
             [lat, lon],
             popup=folium.Popup(popup_html, max_width=300),
-            icon=folium.Icon(color="red", icon="info-sign", prefix='glyphicon')
+            icon=folium.Icon(color=pin_color, icon="info-sign", prefix='glyphicon')
         )
-        marker.add_to(m)
+        marker.add_to(category_groups[category])
         
         if route_coords:
             route_line = folium.PolyLine(
@@ -58,7 +74,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
                 weight=5,
                 opacity=0.0 # Initially hidden
             )
-            route_line.add_to(m)
+            route_line.add_to(category_groups[category])
             
             route_var = route_line.get_name()
             marker_var = marker.get_name()
@@ -112,5 +128,8 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         </script>
         """
         m.get_root().html.add_child(folium.Element(custom_js))
+
+    # Add Layer Control to handle categories
+    folium.LayerControl(collapsed=False).add_to(m)
 
     return m

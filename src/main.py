@@ -64,6 +64,13 @@ class VacationPlannerApp(ctk.CTk):
         self.browse_btn = ctk.CTkButton(self.csv_frame, text="Browse...", command=self.browse_csv, width=100)
         self.browse_btn.grid(row=1, column=1, padx=(5, 10), pady=10)
 
+        self.cat_label = ctk.CTkLabel(self.csv_frame, text="Filter by Category:", font=ctk.CTkFont(size=12))
+        self.cat_label.grid(row=2, column=0, padx=10, pady=(0, 5), sticky="w")
+
+        self.category_var = ctk.StringVar(value="All Categories")
+        self.category_menu = ctk.CTkOptionMenu(self.csv_frame, variable=self.category_var, values=["All Categories"])
+        self.category_menu.grid(row=3, column=0, columnspan=2, padx=10, pady=(0, 15), sticky="ew")
+
         # 3. Output / Generate Frame
         self.gen_frame = ctk.CTkFrame(self)
         self.gen_frame.grid(row=3, column=0, padx=20, pady=10, sticky="nsew")
@@ -85,6 +92,11 @@ class VacationPlannerApp(ctk.CTk):
         else:
             # Running as script
             self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        # Initial Scan of default CSV if it exists
+        default_csv = os.path.join(self.base_dir, "data", "vacation_destinations.csv")
+        if os.path.exists(default_csv):
+            self.scan_categories(default_csv)
 
 
     def log(self, text):
@@ -109,6 +121,22 @@ class VacationPlannerApp(ctk.CTk):
         file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")])
         if file_path:
             self.csv_path_var.set(file_path)
+            self.scan_categories(file_path)
+
+    def scan_categories(self, csv_path):
+        """Scans the CSV for unique categories and updates the OptionMenu."""
+        try:
+            df = pd.read_csv(csv_path)
+            if 'category' in df.columns:
+                unique_cats = sorted(df['category'].dropna().unique().tolist())
+                new_values = ["All Categories"] + unique_cats
+                self.category_menu.configure(values=new_values)
+                self.category_var.set("All Categories")
+            else:
+                self.category_menu.configure(values=["All Categories"])
+                self.category_var.set("All Categories")
+        except Exception as e:
+            self.log(f"Error scanning categories: {e}")
 
     def generate_map(self):
         self.generate_btn.configure(state="disabled")
@@ -162,6 +190,13 @@ class VacationPlannerApp(ctk.CTk):
                 if not all(col in df.columns for col in req_cols):
                     self.log(f"Error: CSV missing required columns: {req_cols}")
                     return
+                
+                # Filter by Category if specified
+                selected_cat = self.category_var.get()
+                if selected_cat != "All Categories" and 'category' in df.columns:
+                    df = df[df['category'] == selected_cat]
+                    self.log(f"Filtered for category: {selected_cat} ({len(df)} locations)")
+                
             except Exception as e:
                 self.log(f"Error loading CSV: {e}")
                 return
