@@ -295,8 +295,9 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         pointer-events: none;
     }
 
-    /* Sidebar panel — slides in/out */
+    /* Sidebar panel — collapse-and-fade effect */
     .trip-explorer {
+        max-width: 320px;
         width: 320px;
         height: 100%;
         background: rgba(26, 12, 58, 0.88);
@@ -310,15 +311,18 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                    opacity 0.25s ease;
+        transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity    0.25s ease,
+                    padding    0.35s ease;
         pointer-events: auto;
-        transform: translateX(0);
     }
     .trip-explorer.collapsed {
-        transform: translateX(calc(100% + 100px));
+        max-width: 0;
         opacity: 0;
+        padding-left: 0;
+        padding-right: 0;
         pointer-events: none;
+        border-color: transparent;
     }
 
     .explorer-header {
@@ -374,7 +378,17 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
 
     /* Mobile */
     @media (max-width: 600px) {
-        .trip-dashboard { width: calc(100% - 40px); left: 20px; top: 10px; padding: 12px 15px; }
+        .trip-dashboard { 
+            width: calc(100% - 80px); 
+            left: 20px; 
+            top: 20px; 
+            padding: 12px 15px; 
+            z-index: 2000;
+        }
+        .explorer-toggle-btn {
+            top: 20px;
+            right: 20px;
+        }
         .explorer-wrapper {
             top: auto;
             bottom: 0;
@@ -387,11 +401,12 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
             height: 55vh;
             border-radius: 20px 20px 0 0;
             border-bottom: none;
-            transform: translateY(0);
         }
         .trip-explorer.collapsed {
-            transform: translateY(100%);
-            opacity: 1; /* Keep it opaque but sliding away */
+            max-width: 100%;
+            height: 0;
+            padding: 0;
+            opacity: 0;
         }
     }
     </style>
