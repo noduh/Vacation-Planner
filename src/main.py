@@ -147,7 +147,7 @@ class VacationPlannerApp(ctk.CTk):
             csv_path = self.csv_path_var.get()
             if not csv_path or not os.path.exists(csv_path):
                 # Try generic default for tester
-                default_data = os.path.join(self.base_dir, "data", "sample_destinations.csv")
+                default_data = os.path.join(self.base_dir, "data", "vacation_destinations.csv")
                 if os.path.exists(default_data):
                     self.log(f"No CSV selected. Falling back to default testing sample.")
                     csv_path = default_data
