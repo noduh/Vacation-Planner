@@ -253,24 +253,13 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     .trip-dashboard h1 { margin: 0; font-size: 20px; font-weight: 600; color: #e9d5ff; }
     .trip-dashboard p { margin: 5px 0 0 0; font-size: 13px; opacity: 0.8; color: #f3e8ff; }
 
-    /* ── Explorer wrapper: panel + button side-by-side ── */
-    .explorer-wrapper {
+    /* ── Single always-fixed sidebar toggle button ── */
+    .explorer-toggle-btn {
         position: absolute;
         top: 20px;
         right: 20px;
-        bottom: 20px;
-        z-index: 1001;
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 8px;
-        pointer-events: none;   /* let map clicks through the gap */
-    }
-
-    /* Toggle button — always visible, never moves */
-    .explorer-toggle-btn {
+        z-index: 2100;
         width: 44px;
-        min-width: 44px;
         height: 44px;
         border-radius: 12px;
         background: rgba(26, 12, 58, 0.88);
@@ -286,9 +275,6 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         box-shadow: 0 8px 30px rgba(0,0,0,0.45);
         transition: background 0.2s, color 0.2s, border-color 0.2s;
         pointer-events: auto;
-        order: 2;   /* button on the right */
-        flex-shrink: 0;
-        z-index: 2100;
     }
     .explorer-toggle-btn:hover { 
         background: rgba(168, 85, 247, 0.5); 
@@ -296,10 +282,21 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         border-color: rgba(168, 85, 247, 0.6);
     }
 
-    /* Sidebar panel — slides in/out by animating max-width */
+    /* ── Explorer wrapper: panel only (button is outside) ── */
+    .explorer-wrapper {
+        position: absolute;
+        top: 20px;
+        right: 75px;   /* Leave room for the fixed button */
+        bottom: 20px;
+        z-index: 1001;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        pointer-events: none;
+    }
+
+    /* Sidebar panel — slides in/out */
     .trip-explorer {
-        order: 1;   /* panel on the left of the button */
-        max-width: 320px;
         width: 320px;
         height: 100%;
         background: rgba(26, 12, 58, 0.88);
@@ -313,18 +310,15 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                    opacity    0.25s ease,
-                    padding    0.35s ease;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.25s ease;
         pointer-events: auto;
+        transform: translateX(0);
     }
     .trip-explorer.collapsed {
-        max-width: 0;
+        transform: translateX(calc(100% + 100px));
         opacity: 0;
-        padding-left: 0;
-        padding-right: 0;
         pointer-events: none;
-        border-color: transparent;
     }
 
     .explorer-header {
@@ -386,24 +380,18 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
             bottom: 0;
             right: 0;
             left: 0;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 0;
+            pointer-events: none;
         }
-        /* Removed mobile override to keep button at the top-right */
         .trip-explorer {
-            order: 2;
             width: 100%;
-            max-width: 100%;
             height: 55vh;
             border-radius: 20px 20px 0 0;
             border-bottom: none;
+            transform: translateY(0);
         }
         .trip-explorer.collapsed {
-            max-width: 100%;
-            height: 0;
-            padding-top: 0;
-            padding-bottom: 0;
+            transform: translateY(100%);
+            opacity: 1; /* Keep it opaque but sliding away */
         }
     }
     </style>
@@ -454,9 +442,8 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
             </select>
         </div>
     </div>
-    <!-- Toggle button: right side of wrapper, always visible -->
-    <button class="explorer-toggle-btn" id="explorerToggleBtn" onclick="toggleSidebar()">&#9776;</button>
     </div>
+    <button class="explorer-toggle-btn" id="explorerToggleBtn" onclick="toggleSidebar()">&#9776;</button>
 
     <script>
     function toggleSidebar() {
