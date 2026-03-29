@@ -15,7 +15,11 @@ def format_distance(meters: float) -> str:
 
 def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) -> folium.Map:
     """Builds the interactive folium map with custom javascript for toggling routes."""
-    m = folium.Map(location=[start_lat, start_lon], zoom_start=12)
+    m = folium.Map(
+        location=[start_lat, start_lon], 
+        zoom_start=12,
+        tiles='CartoDB positron'
+    )
     
     # Start marker
     start_marker = folium.Marker(
