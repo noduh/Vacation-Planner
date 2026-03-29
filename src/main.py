@@ -9,6 +9,7 @@ import webbrowser
 
 from api_client import get_coordinates
 from map_renderer import build_map
+from version import VERSION
 
 # Setup Default Themes
 ctk.set_appearance_mode("Dark")
@@ -42,6 +43,19 @@ class VacationPlannerApp(ctk.CTk):
         )
         self.title_label.pack(side="left")
 
+        # Version Tag
+        self.version_tag = ctk.CTkLabel(
+            self.header_frame,
+            text=VERSION,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color="#6d28d9",
+            text_color="#ffffff",
+            corner_radius=8,
+            width=50,
+            height=22
+        )
+        self.version_tag.pack(side="left", padx=15, pady=(8, 0))
+
         # 1. Start Location Card
         self.start_card = ctk.CTkFrame(self, fg_color=CARD_BG, corner_radius=15, border_width=1, border_color="#404040")
         self.start_card.grid(row=1, column=0, padx=40, pady=10, sticky="ew")
@@ -65,8 +79,12 @@ class VacationPlannerApp(ctk.CTk):
         self.address_entry = ctk.CTkEntry(self.start_card, placeholder_text="Where does your journey begin?", height=45, border_color="#404040", font=ctk.CTkFont(size=14))
         self.address_entry.grid(row=2, column=0, padx=25, pady=15, sticky="ew")
 
-        self.lat_entry = ctk.CTkEntry(self.start_card, placeholder_text="Latitude...", height=45, border_color="#404040")
-        self.lon_entry = ctk.CTkEntry(self.start_card, placeholder_text="Longitude...", height=45, border_color="#404040")
+        # Compact Coordinate Container
+        self.coord_frame = ctk.CTkFrame(self.start_card, fg_color="transparent")
+        self.lat_entry = ctk.CTkEntry(self.coord_frame, placeholder_text="Latitude...", height=45, border_color="#404040")
+        self.lon_entry = ctk.CTkEntry(self.coord_frame, placeholder_text="Longitude...", height=45, border_color="#404040")
+        self.lat_entry.pack(side="left", expand=True, fill="x", padx=(0, 5))
+        self.lon_entry.pack(side="left", expand=True, fill="x", padx=(5, 0))
 
         # 2. Destination Card — just the CSV picker, no checklist
         self.dest_card = ctk.CTkFrame(self, fg_color=CARD_BG, corner_radius=15, border_width=1, border_color="#404040")
@@ -87,9 +105,11 @@ class VacationPlannerApp(ctk.CTk):
         self.browse_btn = ctk.CTkButton(self.csv_row, text="Import", command=self.browse_csv, width=90, height=40, fg_color="#3f3f46", hover_color="#52525b")
         self.browse_btn.grid(row=0, column=1)
 
-        self.dest_hint = ctk.CTkLabel(self.dest_card, text="All destinations in the CSV will be included.", 
-                                      font=ctk.CTkFont(size=12, slant="italic"), text_color="#71717a")
-        self.dest_hint.grid(row=2, column=0, padx=25, pady=(0, 20), sticky="w")
+        # 2b. Map Customization (Hidden in the same card)
+        self.map_name_label = ctk.CTkLabel(self.dest_card, text="TRIP NAME (OPTIONAL)", font=ctk.CTkFont(size=11, weight="bold"), text_color="#71717a")
+        self.map_name_label.grid(row=2, column=0, padx=25, pady=(10, 0), sticky="w")
+        self.map_name_entry = ctk.CTkEntry(self.dest_card, placeholder_text="e.g. Summer Roadtrip 2024", height=35, border_color="#404040", font=ctk.CTkFont(size=13))
+        self.map_name_entry.grid(row=3, column=0, padx=25, pady=(5, 15), sticky="ew")
 
         # 3. Action Zone
         self.action_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -125,18 +145,16 @@ class VacationPlannerApp(ctk.CTk):
 
     def log(self, text):
         """Simple status update."""
-        self.status_label.configure(text=f"> {text}", text_color="#d1d5db")
+        self.status_label.configure(text=text, text_color="#d1d5db")
         self.update_idletasks()
 
     def switch_loc_type(self, value):
         if value == "Address":
-            self.lat_entry.grid_forget()
-            self.lon_entry.grid_forget()
+            self.coord_frame.grid_forget()
             self.address_entry.grid(row=2, column=0, padx=25, pady=15, sticky="ew")
         else:
             self.address_entry.grid_forget()
-            self.lat_entry.grid(row=2, column=0, padx=(25, 200), pady=15, sticky="w")
-            self.lon_entry.grid(row=2, column=0, padx=(200, 25), pady=15, sticky="e")
+            self.coord_frame.grid(row=2, column=0, padx=25, pady=15, sticky="ew")
 
     def browse_csv(self):
         file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")])
@@ -202,7 +220,8 @@ class VacationPlannerApp(ctk.CTk):
                     return
 
             # Build & save map
-            interactive_map = build_map(start_lat, start_lon, df)
+            map_name = self.map_name_entry.get().strip() or "Vacation Planner"
+            interactive_map = build_map(start_lat, start_lon, df, map_name=map_name)
             interactive_map.save(output_file)
             
             # 2. Verify file exists before launching

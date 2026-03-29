@@ -2,9 +2,11 @@ name: Build and Release
 
 on:
   push:
+    branches:
+      - release
     tags:
-      - 'v*' # Automatically create a release when you push a tag like 'v1.0'
-  workflow_dispatch: # Allow manual triggering from the GitHub Actions tab
+      - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -26,6 +28,13 @@ jobs:
       with:
         python-version: '3.12'
         cache: 'pip'
+
+    - name: Get VERSION from source
+      id: get_version
+      shell: bash
+      run: |
+        VERSION=$(grep -oP 'VERSION = "\K[^"]+' src/version.py)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
         
     - name: Install System Dependencies (Linux only)
       if: runner.os == 'Linux'
@@ -42,7 +51,8 @@ jobs:
     - name: Build executable (Linux / macOS)
       if: runner.os != 'Windows'
       run: |
-        pyinstaller --noconfirm --onefile --windowed --name "VacationPlanner-${{ runner.os }}" \
+        pyinstaller --noconfirm --onefile --windowed \
+          --name "VacationPlanner-${{ steps.get_version.outputs.version }}-${{ runner.os }}" \
           --paths src \
           --hidden-import api_client \
           --hidden-import map_renderer \
@@ -57,7 +67,8 @@ jobs:
     - name: Build executable (Windows)
       if: runner.os == 'Windows'
       run: |
-        pyinstaller --noconfirm --onefile --windowed --name "VacationPlanner-${{ runner.os }}" `
+        pyinstaller --noconfirm --onefile --windowed `
+          --name "VacationPlanner-${{ steps.get_version.outputs.version }}-${{ runner.os }}" `
           --paths src `
           --hidden-import api_client `
           --hidden-import map_renderer `
@@ -73,10 +84,11 @@ jobs:
       id: binary_name
       shell: bash
       run: |
+        VERSION=${{ steps.get_version.outputs.version }}
         if [ "$RUNNER_OS" == "Windows" ]; then
-          echo "file=dist/VacationPlanner-Windows.exe" >> $GITHUB_OUTPUT
+          echo "file=dist/VacationPlanner-$VERSION-Windows.exe" >> $GITHUB_OUTPUT
         else
-          echo "file=dist/VacationPlanner-$RUNNER_OS" >> $GITHUB_OUTPUT
+          echo "file=dist/VacationPlanner-$VERSION-$RUNNER_OS" >> $GITHUB_OUTPUT
         fi
 
     - name: Attach Binary to GitHub Release

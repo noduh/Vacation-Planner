@@ -13,7 +13,7 @@ def format_distance(meters: float) -> str:
     km = meters / 1000
     return f"{km:.2f} km"
 
-def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) -> folium.Map:
+def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, map_name: str = "Vacation Planner") -> folium.Map:
     """Builds the interactive folium map with responsive purple styling."""
     
     # Define Tile Layers
@@ -192,7 +192,6 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
                 cb.dispatchEvent(new Event('change'));
             }}
         }});
-        // Note: As per user request, checking \"All\" does NOT automatically view the group.
     }}
 
     function toggleLocation(catId, idx, checked) {{
@@ -202,6 +201,8 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         // Visibility logic: toggle opacity within the FeatureGroup
         entry.marker.setOpacity(checked ? 1 : 0);
         if (entry.route && entry.route !== null) {{
+            // PATH LOGIC FIX: Ensure the route is hidden immediately when location is unchecked
+            entry.route.setStyle({{opacity: checked ? entry.route.options.opacity : 0.0}});
             if (!checked) entry.route.setStyle({{opacity: 0.0}});
         }}
 
@@ -227,6 +228,13 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
             // Register individual markers
             {deferred_setup}
             setupRouteClicks();
+
+            // OS THEME DETECTION logic
+            const userPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (userPrefersDark) {{
+                switchMapStyle('Dark');
+                document.getElementById('mapStyleSelect').value = 'Dark';
+            }}
         }}, 600);
     }});
     </script>
@@ -260,7 +268,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
 
     /* Glassmorphism Header (Always Visible) */
     .control-header {
-        background: rgba(26, 12, 58, 0.9);
+        background: rgba(26, 12, 58, 0.7);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(168, 85, 247, 0.4);
@@ -306,7 +314,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     /* ── Collapsible Body ── */
     .control-body {
         max-height: 70vh;
-        background: rgba(26, 12, 58, 0.85);
+        background: rgba(26, 12, 58, 0.7);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(168, 85, 247, 0.4);
@@ -450,7 +458,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     <div class="trip-control-center collapsed" id="tripControlCenter">
         <div class="control-header">
             <div class="header-info">
-                <h1>Vacation Planner</h1>
+                <h1>{map_name}</h1>
                 <p>Exploring <b>{len(locations_df)}</b> destinations.</p>
             </div>
             <button class="explorer-toggle-btn" id="explorerToggleBtn" onclick="toggleControlCenter()">&#9776;</button>
