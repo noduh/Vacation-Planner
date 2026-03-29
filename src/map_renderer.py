@@ -82,30 +82,30 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         custom_js = f"""
         <script>
         // Setup function
-        function setupVacationMapInteraction() {
+        function setupVacationMapInteraction() {{
             if (typeof all_routes_arr !== 'undefined') return; // already ran
             
             {routes_array_str}
             {handlers_str}
             
             // Clicking elsewhere on the map to clear route selection
-            for (var key in window) {
-                if (key.startsWith("map_") && window[key] instanceof L.Map) {
-                    window[key].on('click', function(e) {
-                        if (typeof all_routes_arr !== 'undefined') {
-                            all_routes_arr.forEach(function(r) {
-                                r.setStyle({opacity: 0.0});
-                            });
-                        }
-                    });
+            for (var key in window) {{
+                if (key.startsWith("map_") && window[key] instanceof L.Map) {{
+                    window[key].on('click', function(e) {{
+                        if (typeof all_routes_arr !== 'undefined') {{
+                            all_routes_arr.forEach(function(r) {{
+                                r.setStyle({{opacity: 0.0}});
+                            }});
+                        }}
+                    }});
                     break;
-                }
-            }
-        }
+                }}
+            }}
+        }}
 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function() {{
             setTimeout(setupVacationMapInteraction, 800);
-        });
+        }});
         // Fallback execution after slightly longer delay
         setTimeout(setupVacationMapInteraction, 1500);
         setTimeout(setupVacationMapInteraction, 3000);

@@ -52,7 +52,7 @@ jobs:
           --collect-all geopy \
           --collect-all pandas \
           --collect-all requests \
-          src/main.py
+          VacationPlanner.py
           
     - name: Build executable (Windows)
       if: runner.os == 'Windows'
@@ -67,7 +67,7 @@ jobs:
           --collect-all geopy `
           --collect-all pandas `
           --collect-all requests `
-          src/main.py
+          VacationPlanner.py
           
     - name: Get Built File Name
       id: binary_name
