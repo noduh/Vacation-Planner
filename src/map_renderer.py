@@ -233,10 +233,6 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.4); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.6); }
 
-    /* Trip Dashboard (Top-Left) */
-    .trip-dashboard {
-        position: absolute;
-        top: 20px;
     /* ── UNIFIED CONTROL CENTER ── */
     .trip-control-center {
         position: absolute;
