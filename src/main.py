@@ -167,6 +167,15 @@ class VacationPlannerApp(ctk.CTk):
         threading.Thread(target=self.process_map, daemon=True).start()
 
     def process_map(self):
+        output_file = os.path.join(self.base_dir, "vacation_planning_map.html")
+        
+        # 1. Clean up stale file to prevent opening old results on failure
+        if os.path.exists(output_file):
+            try:
+                os.remove(output_file)
+            except Exception as e:
+                self.log(f"Warning: Could not clear old map: {e}")
+
         try:
             df = self.current_df.copy()
             self.log(f"Building map for {len(df)} destinations...")
@@ -194,10 +203,14 @@ class VacationPlannerApp(ctk.CTk):
 
             # Build & save map
             interactive_map = build_map(start_lat, start_lon, df)
-            output_file = os.path.join(self.base_dir, "vacation_planning_map.html")
             interactive_map.save(output_file)
-            self.log("Map generated successfully!")
-            webbrowser.open('file://' + os.path.realpath(output_file))
+            
+            # 2. Verify file exists before launching
+            if os.path.exists(output_file):
+                self.log("Map generated successfully!")
+                webbrowser.open('file://' + os.path.realpath(output_file))
+            else:
+                self.log("Error: Map file was not created.")
 
         except Exception as e:
             self.log(f"Failed: {e}")

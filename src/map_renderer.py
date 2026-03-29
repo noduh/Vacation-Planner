@@ -361,41 +361,31 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         border: 1px solid rgba(168, 85, 247, 0.2);
     }
     .vis-btn {
-        padding: 3px 6px;
-        font-size: 9px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 4px;
         cursor: pointer;
         transition: all 0.2s;
         opacity: 0.5;
         color: #e9d5ff;
+        padding: 0;
     }
+    .vis-btn svg { width: 14px; height: 14px; stroke-width: 2.5; }
     .vis-btn:hover { opacity: 0.8; background: rgba(168, 85, 247, 0.1); }
     .vis-btn.active { 
         opacity: 1; 
         background: #a855f7; 
         color: white; 
-        box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
-    }
-
-    .master-selection { 
-        display: flex; 
-        align-items: center; 
-        gap: 5px; 
-        font-size: 11px; 
-        font-weight: 600; 
-        opacity: 0.8;
-        color: #e9d5ff;
-    }
-    .master-selection input[type="checkbox"] { 
-        cursor: pointer; accent-color: #a855f7; width: 14px; height: 14px; margin: 0;
+        box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
     }
 
     .category-title { 
         flex: 1; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        padding-right: 5px;
     }
     .category-toggle-icon { font-size: 10px; opacity: 0.5; transition: transform 0.3s; flex-shrink: 0; }
     
@@ -404,14 +394,20 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     .category-group.open .category-toggle-icon { transform: rotate(180deg); }
 
     .location-item { 
-        padding: 8px 15px 8px 20px; display: flex; align-items: center; font-size: 13px; opacity: 0.9; 
-        transition: opacity 0.2s; gap: 0;
+        padding: 8px 15px 8px 15px; display: flex; align-items: center; font-size: 13px; opacity: 0.9; 
+        transition: opacity 0.2s; gap: 10px;
     }
     .location-item:hover { opacity: 1; background: rgba(168, 85, 247, 0.05); }
     .location-item input[type="checkbox"] { 
         flex-shrink: 0; accent-color: #a855f7; width: 14px; height: 14px; cursor: pointer; margin: 0;
     }
-    .location-item span { margin-left: 10px; }
+
+    .all-divider { 
+        border-bottom: 1px solid rgba(168, 85, 247, 0.15); 
+        margin: 4px 10px;
+        height: 1px;
+    }
+    .location-item.master { font-weight: 600; color: #e9d5ff; opacity: 1; }
 
     /* Map Style Dropdown */
     .style-selector { margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(168, 85, 247, 0.2); }
@@ -471,20 +467,25 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         explorer_html += f"""
         <div class="category-group" id="catGroup_{cat_id}">
             <div class="category-label" onclick="document.getElementById('locList_{cat_id}').classList.toggle('active'); document.getElementById('catGroup_{cat_id}').classList.toggle('open')">
+                <div class="category-title">{cat}</div>
                 <div class="category-controls" onclick="event.stopPropagation()">
                     <div class="visibility-toggle">
-                        <div class="vis-btn active" id="visView_{cat_id}" title="Show Group" onclick="setGroupVisibility('{cat_id}', true)">View</div>
-                        <div class="vis-btn" id="visHide_{cat_id}" title="Hide Group" onclick="setGroupVisibility('{cat_id}', false)">Hide</div>
-                    </div>
-                    <div class="master-selection">
-                        <input type="checkbox" checked id="catAllCb_{cat_id}" onclick="toggleCategory('{cat_id}', this.checked)">
-                        <span>All</span>
+                        <div class="vis-btn active" id="visView_{cat_id}" title="Show markers" onclick="setGroupVisibility('{cat_id}', true)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </div>
+                        <div class="vis-btn" id="visHide_{cat_id}" title="Hide markers" onclick="setGroupVisibility('{cat_id}', false)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </div>
                     </div>
                 </div>
-                <div class="category-title">{cat}</div>
                 <span class="category-toggle-icon">&#9660;</span>
             </div>
             <div class="location-list" id="locList_{cat_id}">
+                <div class="location-item master">
+                    <input type="checkbox" checked id="catAllCb_{cat_id}" onclick="toggleCategory('{cat_id}', this.checked)">
+                    <span>ALL LOCATIONS</span>
+                </div>
+                <div class="all-divider"></div>
         """
 
         cat_items = locations_df[locations_df['category'] == cat] if 'category' in locations_df.columns else locations_df
