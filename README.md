@@ -1,12 +1,18 @@
-# Interactive Vacation Planning Map
+# Vacation Planner
 
-An open-source Python native desktop application built with CustomTkinter and Folium to plan road trip vacations. It takes a starting location and a CSV of destinations, plots them on an interactive Leaflet map, fetches driving directions using the public OSRM API, and provides an exportable standalone HTML map file.
+A modern, high-end Python desktop application for planning vacations and road trips. Built with **CustomTkinter** and **Folium**, it transforms your destination lists into beautiful, interactive travel dashboards.
 
-## Setup and Installation
+## ✨ Features
+- **Modern Dashboard**: A vibrant, purple-themed GUI designed for focus and readability.
+- **Destination Engine**: Granular selection control—toggle entire categories or specific locations with ease.
+- **Professional Exports**: Generates a standalone, mobile-responsive HTML map using a custom **Trip Explorer** sidebar.
+- **Glassmorphism Design**: High-end translucent UI elements across both the app and exported documents.
+- **Smart Routing**: Fetches driving directions and travel times automatically via the OSRM API.
+
+## 🚀 Setup and Installation
 
 This project utilizes a Python virtual environment to manage dependencies locally. 
 
-If installing from scratch:
 ```bash
 # 1. Create a virtual environment
 python3 -m venv .venv
@@ -18,22 +24,30 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## How to Run
+## 🛠️ How to Run
 
-1. Open your terminal in this repository folder.
-2. Activate the virtual environment:
+1. Activate the virtual environment:
    ```bash
    source .venv/bin/activate
    ```
-3. Run the GUI application:
+2. Run the application:
    ```bash
    python src/main.py
    ```
-4. A native desktop window will appear.
 
-## Usage
-- Provide your starting address or coordinates.
-- Browse to upload your own CSV file containing headers `label`, `latitude`, `longitude`, and optionally `description`.
-- Click 'Generate Map' to automatically fetch routes and save your `vacation_planning_map.html` offline map locally.
+## 📦 Creating a Standalone Binary
+To build a portable version for your OS:
+```bash
+.venv/bin/pyinstaller --noconfirm --onefile --windowed --name "VacationPlanner" --add-data "src:src" --add-data "data:data" --paths src --collect-all customtkinter --collect-all folium --collect-all branca --collect-all geopy --collect-all pandas --collect-all requests VacationPlanner.py
+```
 
-*Note: The native UI does not require a browser, but compiling with Pyinstaller on Linux requires `python3-tk`.*
+## 📂 Data Format
+Your `vacation_destinations.csv` should include the following headers:
+- `label`: Name of the destination
+- `latitude`: Decimal latitude
+- `longitude`: Decimal longitude
+- `category`: Group (e.g., Dining, Sightseeing)
+- `description`: (Optional) Details for the popup
+
+---
+*Note: The native UI is optimized for laptop screens but the exported maps are fully responsive for mobile devices.*
