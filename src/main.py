@@ -91,9 +91,8 @@ class VacationPlannerApp(ctk.CTk):
         self.browse_btn = ctk.CTkButton(self.csv_row, text="Import", command=self.browse_csv, width=90, height=40, fg_color="#3f3f46", hover_color="#52525b")
         self.browse_btn.grid(row=0, column=1)
 
-        # Master Toggle Row
+        # Master Toggle Row (hidden until CSV loaded)
         self.master_row = ctk.CTkFrame(self.dest_card, fg_color="transparent")
-        self.master_row.grid(row=2, column=0, padx=25, pady=(5, 0), sticky="ew")
         
         self.master_var = tk.BooleanVar(value=True)
         self.master_cb = ctk.CTkCheckBox(self.master_row, text="SELECT ALL DESTINATIONS", variable=self.master_var, 
@@ -103,14 +102,10 @@ class VacationPlannerApp(ctk.CTk):
                                         command=self.toggle_all_master)
         self.master_cb.pack(side="left")
 
-        # Scrollable Destination Area
+        # Scrollable Destination Area (hidden until CSV loaded)
         self.scroll_frame = ctk.CTkScrollableFrame(self.dest_card, fg_color="#1e1e1e", corner_radius=10, border_width=1, border_color="#333333")
-        self.scroll_frame.grid(row=3, column=0, padx=25, pady=(10, 25), sticky="nsew")
         self.scroll_frame.grid_columnconfigure(0, weight=1)
         self.dest_card.grid_rowconfigure(3, weight=1)
-
-        self.empty_label = ctk.CTkLabel(self.scroll_frame, text="Load a CSV to manage locations.", font=ctk.CTkFont(slant="italic"), text_color="#71717a")
-        self.empty_label.pack(pady=50)
 
         # 3. Action Zone
         self.action_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -119,7 +114,7 @@ class VacationPlannerApp(ctk.CTk):
 
         self.generate_btn = ctk.CTkButton(
             self.action_frame, 
-            text="GENIPERATE MAP", 
+            text="GENERATE INTERACTIVE MAP", 
             command=self.generate_map, 
             height=60, 
             font=ctk.CTkFont(size=16, weight="bold"),
@@ -172,6 +167,10 @@ class VacationPlannerApp(ctk.CTk):
         try:
             for widget in self.scroll_frame.winfo_children():
                 widget.destroy()
+            
+            # Show the master toggle and scroll frame now that we have data
+            self.master_row.grid(row=2, column=0, padx=25, pady=(5, 0), sticky="ew")
+            self.scroll_frame.grid(row=3, column=0, padx=25, pady=(10, 25), sticky="nsew")
             
             self.checklist_vars = {}
             self.current_df = pd.read_csv(csv_path)
