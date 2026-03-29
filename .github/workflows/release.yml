@@ -43,6 +43,9 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         pyinstaller --noconfirm --onefile --windowed --name "TripPlanner-${{ runner.os }}" \
+          --paths src \
+          --hidden-import api_client \
+          --hidden-import map_renderer \
           --collect-all customtkinter \
           --collect-all folium \
           --collect-all branca \
@@ -55,6 +58,9 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         pyinstaller --noconfirm --onefile --windowed --name "TripPlanner-${{ runner.os }}" `
+          --paths src `
+          --hidden-import api_client `
+          --hidden-import map_renderer `
           --collect-all customtkinter `
           --collect-all folium `
           --collect-all branca `
