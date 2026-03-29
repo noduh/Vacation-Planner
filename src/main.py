@@ -71,6 +71,8 @@ class VacationPlannerApp(ctk.CTk):
             variable=self.loc_type_var, 
             command=self.switch_loc_type,
             selected_color=PURPLE_ACCENT,
+            selected_hover_color=PURPLE_HOVER,
+            unselected_color="#2d2d2d",
             unselected_hover_color="#3f3f46",
             font=ctk.CTkFont(size=13)
         )
@@ -142,6 +144,17 @@ class VacationPlannerApp(ctk.CTk):
         if os.path.exists(default_csv):
             self.csv_path_var.set(default_csv)
             self._load_csv(default_csv)
+
+        # Final layout fixes
+        self.minsize(700, 620)
+        self.center_window()
+
+    def center_window(self):
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width / 2) - (700 / 2)
+        y = (screen_height / 2) - (620 / 2)
+        self.geometry(f'+{int(x)}+{int(y)}')
 
     def log(self, text):
         """Simple status update."""

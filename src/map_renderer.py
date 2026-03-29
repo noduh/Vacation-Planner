@@ -200,10 +200,12 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
         
         // Visibility logic: toggle opacity within the FeatureGroup
         entry.marker.setOpacity(checked ? 1 : 0);
+        
         if (entry.route && entry.route !== null) {{
-            // PATH LOGIC FIX: Ensure the route is hidden immediately when location is unchecked
-            entry.route.setStyle({{opacity: checked ? entry.route.options.opacity : 0.0}});
-            if (!checked) entry.route.setStyle({{opacity: 0.0}});
+            // PATH LOGIC FIX: Force hide the route if the location is unchecked
+            if (!checked) {{
+                entry.route.setStyle({{opacity: 0, fillOpacity: 0}});
+            }}
         }}
 
         // Sync \"All\" master checkbox
