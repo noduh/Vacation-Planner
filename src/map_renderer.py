@@ -237,97 +237,95 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     .trip-dashboard {
         position: absolute;
         top: 20px;
-        left: 20px;
-        z-index: 1001;
-        background: rgba(26, 12, 58, 0.85);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(168, 85, 247, 0.3);
-        border-radius: 16px;
-        padding: 15px 20px;
-        color: white;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        width: 260px;
-        pointer-events: auto;
-    }
-    .trip-dashboard h1 { margin: 0; font-size: 20px; font-weight: 600; color: #e9d5ff; }
-    .trip-dashboard p { margin: 5px 0 0 0; font-size: 13px; opacity: 0.8; color: #f3e8ff; }
-
-    /* ── Single always-fixed sidebar toggle button ── */
-    .explorer-toggle-btn {
+    /* ── UNIFIED CONTROL CENTER ── */
+    .trip-control-center {
         position: absolute;
         top: 20px;
         right: 20px;
-        z-index: 2100;
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background: rgba(26, 12, 58, 0.88);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(168, 85, 247, 0.35);
+        z-index: 2000;
+        width: 340px;
+        display: flex;
+        flex-direction: column;
+        pointer-events: none;
+    }
+
+    /* Glassmorphism Header (Always Visible) */
+    .control-header {
+        background: rgba(26, 12, 58, 0.9);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        border-radius: 20px;
+        padding: 16px 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        pointer-events: auto;
+        transition: border-radius 0.3s ease;
+    }
+    .trip-control-center:not(.collapsed) .control-header {
+        border-radius: 20px 20px 0 0;
+        border-bottom: none;
+    }
+
+    .header-info h1 { margin: 0; font-size: 19px; font-weight: 700; color: #e9d5ff; line-height: 1.2; }
+    .header-info p { margin: 4px 0 0 0; font-size: 12px; opacity: 0.75; color: #f3e8ff; }
+
+    /* Integrated Toggle Button */
+    .explorer-toggle-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: rgba(168, 85, 247, 0.15);
+        border: 1px solid rgba(168, 85, 247, 0.3);
         color: #e9d5ff;
-        font-size: 20px;
+        font-size: 18px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.45);
-        transition: background 0.2s, color 0.2s, border-color 0.2s;
-        pointer-events: auto;
+        transition: all 0.2s;
     }
     .explorer-toggle-btn:hover { 
-        background: rgba(168, 85, 247, 0.5); 
+        background: rgba(168, 85, 247, 0.35); 
         color: #ffffff;
         border-color: rgba(168, 85, 247, 0.6);
+        transform: scale(1.05);
     }
 
-    /* ── Explorer wrapper: panel only (button is outside) ── */
-    .explorer-wrapper {
-        position: absolute;
-        top: 20px;
-        right: 75px;   /* Leave room for the fixed button */
-        bottom: 20px;
-        z-index: 1001;
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-        pointer-events: none;
-    }
-
-    /* Sidebar panel — collapse-and-fade effect */
-    .trip-explorer {
-        max-width: 320px;
-        width: 320px;
-        height: 100%;
-        background: rgba(26, 12, 58, 0.88);
+    /* ── Collapsible Body ── */
+    .control-body {
+        max-height: 70vh;
+        background: rgba(26, 12, 58, 0.85);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(168, 85, 247, 0.3);
-        border-radius: 20px;
-        padding: 20px;
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        border-top: none;
+        border-radius: 0 0 20px 20px;
+        padding: 0 20px 20px 20px;
         color: white;
-        box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        transition: max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                    opacity    0.25s ease,
-                    padding    0.35s ease;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                    opacity 0.3s ease,
+                    padding 0.4s ease;
         pointer-events: auto;
+        opacity: 1;
     }
-    .trip-explorer.collapsed {
-        max-width: 0;
+    .trip-control-center.collapsed .control-body {
+        max-height: 0;
         opacity: 0;
-        padding-left: 0;
-        padding-right: 0;
+        padding-top: 0;
+        padding-bottom: 0;
         pointer-events: none;
-        border-color: transparent;
     }
 
     .explorer-header {
-        font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #e9d5ff;
-        white-space: nowrap;   /* prevent wrapping during animation */
+        font-size: 14px; font-weight: 600; margin-bottom: 15px; color: #e9d5ff;
+        text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; padding-top: 15px; border-top: 1px solid rgba(168, 85, 247, 0.1);
     }
     .explorer-content { flex: 1; overflow-y: auto; padding-right: 5px; }
 
@@ -378,47 +376,37 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
 
     /* Mobile */
     @media (max-width: 600px) {
-        .trip-dashboard { 
-            width: calc(100% - 80px); 
+        .trip-control-center { 
+            width: calc(100% - 40px); 
             left: 20px; 
-            top: 20px; 
-            padding: 12px 15px; 
-            z-index: 2000;
-        }
-        .explorer-toggle-btn {
-            top: 20px;
             right: 20px;
+            top: 20px; 
         }
-        .explorer-wrapper {
-            top: auto;
-            bottom: 0;
-            right: 0;
-            left: 0;
-            pointer-events: none;
-        }
-        .trip-explorer {
-            width: 100%;
-            height: 55vh;
-            border-radius: 20px 20px 0 0;
-            border-bottom: none;
-        }
-        .trip-explorer.collapsed {
-            max-width: 100%;
-            height: 0;
-            padding: 0;
-            opacity: 0;
+        .control-header { padding: 12px 15px; }
+        .header-info h1 { font-size: 17px; }
+        .header-info p { font-size: 11px; }
+        .control-body { 
+            max-height: 60vh; 
+            padding: 0 15px 15px 15px;
         }
     }
     </style>
     """
     m.get_root().header.add_child(folium.Element(premium_css))
 
-    # Sidebar HTML: flex wrapper holds [panel] [button] side by side
-    explorer_html = """
-    <div class="explorer-wrapper">
-    <div class="trip-explorer collapsed" id="tripExplorer">
-        <div class="explorer-header">Trip Explorer</div>
-        <div class="explorer-content">
+    # Unified Control HTML: Dashboard info is now the header
+    explorer_html = f"""
+    <div class="trip-control-center collapsed" id="tripControlCenter">
+        <div class="control-header">
+            <div class="header-info">
+                <h1>Vacation Planner</h1>
+                <p>Exploring <b>{len(locations_df)}</b> destinations.</p>
+            </div>
+            <button class="explorer-toggle-btn" id="explorerToggleBtn" onclick="toggleControlCenter()">&#9776;</button>
+        </div>
+        <div class="control-body">
+            <div class="explorer-header">Destinations</div>
+            <div class="explorer-content">
     """
 
     for cat, group in category_groups.items():
@@ -447,24 +435,23 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
         explorer_html += "</div></div>"
 
     explorer_html += """
-        </div>
-        <div class="style-selector">
-            <div class="style-title">Base Map</div>
-            <select class="style-dropdown" id="mapStyleSelect" onchange="switchMapStyle(this.value)">
-                <option value="Light" selected>Light Mode</option>
-                <option value="Dark">Dark Mode</option>
-                <option value="Satellite">Satellite View</option>
-            </select>
+            </div>
+            <div class="style-selector">
+                <div class="style-title">Base Map</div>
+                <select class="style-dropdown" id="mapStyleSelect" onchange="switchMapStyle(this.value)">
+                    <option value="Light" selected>Light Mode</option>
+                    <option value="Dark">Dark Mode</option>
+                    <option value="Satellite">Satellite View</option>
+                </select>
+            </div>
         </div>
     </div>
-    </div>
-    <button class="explorer-toggle-btn" id="explorerToggleBtn" onclick="toggleSidebar()">&#9776;</button>
 
     <script>
-    function toggleSidebar() {
-        var explorer = document.getElementById('tripExplorer');
+    function toggleControlCenter() {
+        var center = document.getElementById('tripControlCenter');
         var btn = document.getElementById('explorerToggleBtn');
-        var collapsed = explorer.classList.toggle('collapsed');
+        var collapsed = center.classList.toggle('collapsed');
         btn.innerHTML = collapsed ? '&#9776;' : '&#10005;';
     }
 
@@ -488,14 +475,5 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame) ->
     </script>
     """
     m.get_root().html.add_child(folium.Element(explorer_html))
-
-
-    dashboard_html = f"""
-    <div class="trip-dashboard">
-        <h1>Vacation Planner</h1>
-        <p>Exploring <b>{len(locations_df)}</b> destinations.<br>Tap a pin to see travel times.</p>
-    </div>
-    """
-    m.get_root().html.add_child(folium.Element(dashboard_html))
 
     return m
