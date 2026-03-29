@@ -27,6 +27,12 @@ jobs:
         python-version: '3.12'
         cache: 'pip'
         
+    - name: Install System Dependencies (Linux only)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-tk
+        
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -36,34 +42,26 @@ jobs:
     - name: Build executable (Linux / macOS)
       if: runner.os != 'Windows'
       run: |
-        pyinstaller --noconfirm --onefile --name "TripPlanner-${{ runner.os }}" \
-          --add-data "src:src" \
-          --add-data "data:data" \
-          --copy-metadata streamlit \
-          --collect-all streamlit \
+        pyinstaller --noconfirm --onefile --windowed --name "TripPlanner-${{ runner.os }}" \
+          --collect-all customtkinter \
           --collect-all folium \
           --collect-all branca \
-          --collect-all streamlit_folium \
           --collect-all geopy \
           --collect-all pandas \
           --collect-all requests \
-          run_app.py
+          src/main.py
           
     - name: Build executable (Windows)
       if: runner.os == 'Windows'
       run: |
-        pyinstaller --noconfirm --onefile --name "TripPlanner-${{ runner.os }}" `
-          --add-data "src;src" `
-          --add-data "data;data" `
-          --copy-metadata streamlit `
-          --collect-all streamlit `
+        pyinstaller --noconfirm --onefile --windowed --name "TripPlanner-${{ runner.os }}" `
+          --collect-all customtkinter `
           --collect-all folium `
           --collect-all branca `
-          --collect-all streamlit_folium `
           --collect-all geopy `
           --collect-all pandas `
           --collect-all requests `
-          run_app.py
+          src/main.py
           
     - name: Get Built File Name
       id: binary_name

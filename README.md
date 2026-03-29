@@ -1,6 +1,6 @@
 # Interactive Trip Planning Map
 
-An open-source Python tool built with Streamlit and Folium to plan road trips. It takes a starting location and a CSV of destinations, plots them on an interactive Leaflet map, fetches driving directions using the public OSRM API, and provides an exportable standalone HTML map file.
+An open-source Python native desktop application built with CustomTkinter and Folium to plan road trips. It takes a starting location and a CSV of destinations, plots them on an interactive Leaflet map, fetches driving directions using the public OSRM API, and provides an exportable standalone HTML map file.
 
 ## Setup and Installation
 
@@ -25,20 +25,15 @@ pip install -r requirements.txt
    ```bash
    source .venv/bin/activate
    ```
-3. Run the Streamlit application:
+3. Run the GUI application:
    ```bash
-   python -m streamlit run src/app.py
+   python src/main.py
    ```
-4. A web page will automatically open in your default browser at `http://localhost:8501`.
+4. A native desktop window will appear.
 
 ## Usage
-- Provide your starting address or coordinates in the sidebar.
-- Choose to use the default `sample_destinations.csv`, or upload your own CSV file containing headers `label`, `latitude`, `longitude`, and `description`.
-- Click the map pins to view the isolated navigation directions for each destination.
-- Click "Download Map as HTML" to save a mobile and desktop friendly version of your trip map that works completely offline without needing the Python server!
+- Provide your starting address or coordinates.
+- Browse to upload your own CSV file containing headers `label`, `latitude`, `longitude`, and optionally `description`.
+- Click 'Generate Map' to automatically fetch routes and save your `trip_planning_map.html` offline map locally.
 
-## Testing
-To verify the API integrations, run the included tests:
-```bash
-python tests.py
-```
+*Note: The native UI does not require a browser, but compiling with Pyinstaller on Linux requires `python3-tk`.*
