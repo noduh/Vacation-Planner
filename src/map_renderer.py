@@ -321,8 +321,8 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
     /* Glassmorphism Header (Always Visible) */
     .control-header {
         background: rgba(26, 12, 58, 0.85);
-        backdrop-filter: blur(40px);
-        -webkit-backdrop-filter: blur(40px);
+        backdrop-filter: blur(60px);
+        -webkit-backdrop-filter: blur(60px);
         border: 1px solid rgba(168, 85, 247, 0.4);
         border-radius: 20px;
         padding: 16px 20px;
@@ -367,8 +367,8 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
     .control-body {
         max-height: 70vh;
         background: rgba(26, 12, 58, 0.85);
-        backdrop-filter: blur(40px);
-        -webkit-backdrop-filter: blur(40px);
+        backdrop-filter: blur(60px);
+        -webkit-backdrop-filter: blur(60px);
         border: 1px solid rgba(168, 85, 247, 0.4);
         border-top: none;
         border-radius: 0 0 20px 20px;
