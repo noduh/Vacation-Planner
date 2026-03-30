@@ -128,14 +128,23 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
             route_vars_by_marker[marker_var] = route_var
             
             js_click_handlers.append(f"""
-            {marker_var}.on('click', function(e) {{
+            {marker_var}.on('popupopen', function(e) {{
+                // Hide ALL routes when ANY popup opens
                 all_routes_arr.forEach(function(r) {{ 
                     if (window.current_map.hasLayer(r)) r.setStyle({{opacity: 0.0}}); 
                 }});
+                // Ensure this specific route is on the map and visible
                 if (!window.current_map.hasLayer({route_var})) {{
                     {route_var}.addTo(window.current_map);
                 }}
                 {route_var}.setStyle({{opacity: 0.8}});
+            }});
+
+            {marker_var}.on('popupclose', function(e) {{
+                // Hide the route specific to THIS marker when its popup closes
+                if (window.current_map.hasLayer({route_var})) {{
+                    {route_var}.setStyle({{opacity: 0.0}});
+                }}
             }});
             """)
 
