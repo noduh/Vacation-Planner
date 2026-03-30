@@ -236,6 +236,13 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
         window.routes_initialized = true;
         {routes_array_str}
         {handlers_str}
+
+        // Global Map Listener: Hard reset all paths when any popup is closed
+        window.current_map.on('popupclose', function(e) {{
+            all_routes_arr.forEach(function(r) {{ 
+                if (window.current_map.hasLayer(r)) r.setStyle({{opacity: 0.0}}); 
+            }});
+        }});
     }}
 
     document.addEventListener('DOMContentLoaded', function() {{
