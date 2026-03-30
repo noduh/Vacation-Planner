@@ -320,18 +320,20 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
 
     /* Glassmorphism Header (Always Visible) */
     .control-header {
-        background-color: rgba(26, 12, 58, 0.92);
+        background-color: rgba(26, 12, 58, 0.75);
         background-image: 
-            radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.1) 0, transparent 50%),
-            repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 2px);
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
+            radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.15) 0, transparent 50%),
+            linear-gradient(to bottom right, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
         isolation: isolate;
         transform: translateZ(0);
-        border: 1px solid rgba(168, 85, 247, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-top-color: rgba(255, 255, 255, 0.2);
+        border-left-color: rgba(255, 255, 255, 0.15);
         border-radius: 20px;
         padding: 16px 20px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(168, 85, 247, 0.1);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -340,7 +342,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
     }
     .trip-control-center:not(.collapsed) .control-header {
         border-radius: 20px 20px 0 0;
-        border-bottom: none;
+        border-bottom-color: rgba(168, 85, 247, 0.2);
     }
 
     .header-info h1 { margin: 0; font-size: 19px; font-weight: 700; color: #e9d5ff; line-height: 1.2; }
@@ -371,20 +373,20 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
     /* ── Collapsible Body ── */
     .control-body {
         max-height: 70vh;
-        background-color: rgba(26, 12, 58, 0.92);
+        background-color: rgba(26, 12, 58, 0.7);
         background-image: 
-            radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.1) 0, transparent 50%),
-            repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 2px);
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
+            radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.08) 0, transparent 50%),
+            linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
         isolation: isolate;
         transform: translateZ(0);
-        border: 1px solid rgba(168, 85, 247, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-top: none;
         border-radius: 0 0 20px 20px;
         padding: 0 20px 20px 20px;
         color: white;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(168, 85, 247, 0.05);
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -456,6 +458,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
         flex: 1; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         padding-right: 5px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
     .category-toggle-icon { font-size: 10px; opacity: 0.5; transition: transform 0.3s; flex-shrink: 0; }
     
