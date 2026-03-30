@@ -129,7 +129,12 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
             
             js_click_handlers.append(f"""
             {marker_var}.on('click', function(e) {{
-                all_routes_arr.forEach(function(r) {{ r.setStyle({{opacity: 0.0}}); }});
+                all_routes_arr.forEach(function(r) {{ 
+                    if (window.current_map.hasLayer(r)) r.setStyle({{opacity: 0.0}}); 
+                }});
+                if (!window.current_map.hasLayer({route_var})) {{
+                    {route_var}.addTo(window.current_map);
+                }}
                 {route_var}.setStyle({{opacity: 0.8}});
             }});
             """)
@@ -202,9 +207,10 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
         entry.marker.setOpacity(checked ? 1 : 0);
         
         if (entry.route && entry.route !== null) {{
-            // PATH LOGIC FIX: Force hide the route if the location is unchecked
+            // PATH LOGIC FIX: Force remove the route and disable interactivity
             if (!checked) {{
-                entry.route.setStyle({{opacity: 0, fillOpacity: 0}});
+                entry.route.setStyle({{opacity: 0, fillOpacity: 0, interactive: false}});
+                entry.route.remove();
             }}
         }}
 
@@ -236,6 +242,22 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
             if (userPrefersDark) {{
                 switchMapStyle('Dark');
                 document.getElementById('mapStyleSelect').value = 'Dark';
+            }}
+
+            // PWA SERVICE WORKER REGISTRATION
+            if ('serviceWorker' in navigator) {{
+                const swCode = `
+                    const CACHE_NAME = 'trip-map-cache-v1';
+                    self.addEventListener('install', (event) => {{
+                        event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['./'])));
+                    }});
+                    self.addEventListener('fetch', (event) => {{
+                        event.respondWith(caches.match(event.request).then((response) => response || fetch(event.request)));
+                    }});
+                `;
+                const blob = new Blob([swCode], {{ type: 'application/javascript' }});
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch((err) => console.log('PWA SW failed:', err));
             }}
         }}, 600);
     }});
@@ -453,6 +475,13 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
     }
     </style>
     """
+    m.get_root().header.add_child(folium.Element(f"""
+    <title>{map_name}</title>
+    <meta name="theme-color" content="#a855f7">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23a855f7' viewBox='0 0 16 16'%3E%3Cpath d='M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z'/%3E%3C/svg%3E">
+    <link rel="manifest" href='data:application/json,{{"name":"{map_name}","short_name":"Trip Map","start_url":".","display":"standalone","background_color":"#1a0c3a","theme_color":"#a855f7","icons":[{{"src":"data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"192\" height=\"192\" fill=\"%23a855f7\" viewBox=\"0 0 16 16\"%3E%3Cpath d=\"M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z\"/%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml"}}]}}'>
+    """))
+
     m.get_root().header.add_child(folium.Element(premium_css))
 
     # Unified Control HTML: Dashboard info is now the header

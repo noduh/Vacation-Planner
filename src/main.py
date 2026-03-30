@@ -25,7 +25,7 @@ class VacationPlannerApp(ctk.CTk):
         super().__init__()
 
         self.title("Vacation Planner")
-        self.geometry("700x620")
+        self.geometry("700x700")
         self.grid_columnconfigure(0, weight=1)
         self.configure(fg_color=DARK_BG)
 
@@ -146,14 +146,14 @@ class VacationPlannerApp(ctk.CTk):
             self._load_csv(default_csv)
 
         # Final layout fixes
-        self.minsize(700, 620)
+        self.minsize(700, 700)
         self.center_window()
 
     def center_window(self):
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         x = (screen_width / 2) - (700 / 2)
-        y = (screen_height / 2) - (620 / 2)
+        y = (screen_height / 2) - (700 / 2)
         self.geometry(f'+{int(x)}+{int(y)}')
 
     def log(self, text):
@@ -198,15 +198,6 @@ class VacationPlannerApp(ctk.CTk):
         threading.Thread(target=self.process_map, daemon=True).start()
 
     def process_map(self):
-        output_file = os.path.join(self.base_dir, "vacation_planning_map.html")
-        
-        # 1. Clean up stale file to prevent opening old results on failure
-        if os.path.exists(output_file):
-            try:
-                os.remove(output_file)
-            except Exception as e:
-                self.log(f"Warning: Could not clear old map: {e}")
-
         try:
             df = self.current_df.copy()
             self.log(f"Building map for {len(df)} destinations...")
@@ -235,6 +226,15 @@ class VacationPlannerApp(ctk.CTk):
             # Build & save map
             map_name = self.map_name_entry.get().strip() or "Vacation Planner"
             interactive_map = build_map(start_lat, start_lon, df, map_name=map_name)
+
+            # UNIQ FILENAME LOGIC
+            safe_name = "".join([c for c in map_name if c.isalnum() or c in (' ', '.', '_')]).strip()
+            output_file = os.path.join(self.base_dir, f"{safe_name}.html")
+            counter = 1
+            while os.path.exists(output_file):
+                output_file = os.path.join(self.base_dir, f"{safe_name} ({counter}).html")
+                counter += 1
+            
             interactive_map.save(output_file)
             
             # 2. Verify file exists before launching
