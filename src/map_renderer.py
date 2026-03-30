@@ -293,6 +293,15 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.4); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.6); }
+    
+    .leaflet-container {
+        background: #1a0c3a !important; /* Matches our theme to hide tile seams */
+    }
+    .leaflet-tile {
+        /* Prevents horizontal/vertical seams during panning */
+        outline: 1px solid transparent;
+        will-change: transform;
+    }
 
     /* ── UNIFIED CONTROL CENTER ── */
     .trip-control-center {
@@ -304,6 +313,9 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
         display: flex;
         flex-direction: column;
         pointer-events: none;
+        will-change: transform, opacity;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
     }
 
     /* Glassmorphism Header (Always Visible) */
