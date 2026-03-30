@@ -320,7 +320,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
 
     /* Glassmorphism Header (Always Visible) */
     .control-header {
-        background: rgba(26, 12, 58, 0.85);
+        background: rgba(26, 12, 58, 0.95);
         backdrop-filter: blur(60px);
         -webkit-backdrop-filter: blur(60px);
         border: 1px solid rgba(168, 85, 247, 0.4);
@@ -366,7 +366,7 @@ def build_map(start_lat: float, start_lon: float, locations_df: pd.DataFrame, ma
     /* ── Collapsible Body ── */
     .control-body {
         max-height: 70vh;
-        background: rgba(26, 12, 58, 0.85);
+        background: rgba(26, 12, 58, 0.95);
         backdrop-filter: blur(60px);
         -webkit-backdrop-filter: blur(60px);
         border: 1px solid rgba(168, 85, 247, 0.4);
