@@ -57,7 +57,7 @@ jobs:
       run: |
         pyinstaller --noconfirm --onefile --windowed \
           --name "VacationPlanner-${{ steps.get_version.outputs.version }}-$RUNNER_OS" \
-          --add-data "data:data" \
+          --add-data "src/data:data" \
           --paths src \
           --hidden-import src.api_client \
           --hidden-import src.map_renderer \
@@ -74,7 +74,7 @@ jobs:
       run: |
         pyinstaller --noconfirm --onefile --windowed `
           --name "VacationPlanner-${{ steps.get_version.outputs.version }}-$env:RUNNER_OS" `
-          --add-data "data;data" `
+          --add-data "src/data;data" `
           --paths src `
           --hidden-import src.api_client `
           --hidden-import src.map_renderer `

@@ -44,7 +44,7 @@ uv sync
 ## 📦 Creating a Standalone Binary
 To build a portable version for your OS:
 ```bash
-.venv/bin/pyinstaller --noconfirm --onefile --windowed --name "VacationPlanner" --add-data "src:src" --add-data "data:data" --paths src --collect-all customtkinter --collect-all folium --collect-all branca --collect-all geopy --collect-all pandas --collect-all requests VacationPlanner.py
+.venv/bin/pyinstaller --noconfirm --onefile --windowed --name "VacationPlanner" --add-data "src/data:data" --collect-all customtkinter --collect-all folium --collect-all branca --collect-all geopy --collect-all pandas --collect-all requests VacationPlanner.py
 ```
 
 ## 📂 Data Format
