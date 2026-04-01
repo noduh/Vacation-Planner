@@ -7,9 +7,9 @@ import threading
 import sys
 import webbrowser
 
-from api_client import get_coordinates
-from map_renderer import build_map
-from version import VERSION
+from .api_client import get_coordinates
+from .map_renderer import build_map
+from .version import VERSION
 
 # Setup Default Themes
 ctk.set_appearance_mode("Dark")

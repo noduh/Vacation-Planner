@@ -38,7 +38,7 @@ uv sync
    ```
 2. Run the application:
    ```bash
-   python src/main.py
+   python -m src.main
    ```
 
 ## 📦 Creating a Standalone Binary
