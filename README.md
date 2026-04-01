@@ -11,6 +11,12 @@ A modern, high-end Python desktop application for planning vacations and road tr
 
 ## 🚀 Setup and Installation
 
+> **Linux prerequisite:** `tkinter` is not bundled with Python on most Linux distributions. Install it before proceeding:
+> ```bash
+> sudo apt-get install python3-tk   # Debian / Ubuntu
+> sudo dnf install python3-tkinter  # Fedora / RHEL
+> ```
+
 ### Using pip (recommended)
 
 ```bash

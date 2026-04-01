@@ -237,10 +237,10 @@ class VacationPlannerApp(ctk.CTk):
 
             # UNIQ FILENAME LOGIC
             safe_name = "".join([c for c in map_name if c.isalnum() or c in (' ', '.', '_')]).strip()
-            output_file = os.path.join(self.base_dir, f"{safe_name}.html")
+            output_file = os.path.join(self.output_dir, f"{safe_name}.html")
             counter = 1
             while os.path.exists(output_file):
-                output_file = os.path.join(self.base_dir, f"{safe_name} ({counter}).html")
+                output_file = os.path.join(self.output_dir, f"{safe_name} ({counter}).html")
                 counter += 1
             
             interactive_map.save(output_file)
