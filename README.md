@@ -11,13 +11,7 @@ A modern, high-end Python desktop application for planning vacations and road tr
 
 ## 🚀 Setup and Installation
 
-### Using uv (recommended)
-
-```bash
-uv sync
-```
-
-### Using pip
+### Using pip (recommended)
 
 ```bash
 # 1. Create a virtual environment
@@ -28,6 +22,12 @@ source .venv/bin/activate
 
 # 3. Install the project and its dependencies
 pip install .
+```
+
+### Using uv
+
+```bash
+uv sync
 ```
 
 ## 🛠️ How to Run
