@@ -133,9 +133,11 @@ class VacationPlannerApp(ctk.CTk):
         self.status_label = ctk.CTkLabel(self.action_frame, text="Ready.", font=ctk.CTkFont(size=12), text_color="#71717a")
         self.status_label.grid(row=1, column=0, pady=(10, 0))
 
-        # Handle frozen bundled environment resolving
+        # Handle frozen bundled environment resolving.
+        # In a --onefile PyInstaller build, bundled data files (--add-data) are
+        # extracted to sys._MEIPASS at runtime, not the executable's directory.
         if getattr(sys, 'frozen', False):
-            self.base_dir = os.path.dirname(os.path.abspath(sys.executable))
+            self.base_dir = sys._MEIPASS
         else:
             self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
