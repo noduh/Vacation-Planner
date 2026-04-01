@@ -250,6 +250,10 @@ class VacationPlannerApp(ctk.CTk):
             self.generate_btn.configure(state="normal", text="GENERATE INTERACTIVE MAP")
 
 
-if __name__ == "__main__":
+def main():
     app = VacationPlannerApp()
     app.mainloop()
+
+
+if __name__ == "__main__":
+    main()
