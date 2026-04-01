@@ -2,8 +2,6 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - release
     tags:
       - 'v*'
   workflow_dispatch:
@@ -33,7 +31,13 @@ jobs:
       id: get_version
       shell: bash
       run: |
-        VERSION=$(grep -oP 'VERSION = "\K[^"]+' src/version.py)
+        VERSION=$(python -c "
+        import re, sys
+        m = re.search(r'VERSION\s*=\s*\"([^\"]+)\"', open('src/version.py').read())
+        if not m:
+            print('ERROR: could not find VERSION in src/version.py', file=sys.stderr); sys.exit(1)
+        print(m.group(1))
+        ")
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         
     - name: Install System Dependencies (Linux only)
@@ -52,7 +56,7 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         pyinstaller --noconfirm --onefile --windowed \
-          --name "VacationPlanner-${{ steps.get_version.outputs.version }}-${{ runner.os }}" \
+          --name "VacationPlanner-${{ steps.get_version.outputs.version }}-$RUNNER_OS" \
           --paths src \
           --hidden-import api_client \
           --hidden-import map_renderer \
@@ -68,7 +72,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         pyinstaller --noconfirm --onefile --windowed `
-          --name "VacationPlanner-${{ steps.get_version.outputs.version }}-${{ runner.os }}" `
+          --name "VacationPlanner-${{ steps.get_version.outputs.version }}-$env:RUNNER_OS" `
           --paths src `
           --hidden-import api_client `
           --hidden-import map_renderer `
