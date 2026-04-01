@@ -11,7 +11,13 @@ A modern, high-end Python desktop application for planning vacations and road tr
 
 ## 🚀 Setup and Installation
 
-This project utilizes a Python virtual environment to manage dependencies locally. 
+### Using uv (recommended)
+
+```bash
+uv sync
+```
+
+### Using pip
 
 ```bash
 # 1. Create a virtual environment
@@ -20,8 +26,8 @@ python3 -m venv .venv
 # 2. Activate the virtual environment
 source .venv/bin/activate
 
-# 3. Install requirements
-pip install -r requirements.txt
+# 3. Install the project and its dependencies
+pip install .
 ```
 
 ## 🛠️ How to Run
