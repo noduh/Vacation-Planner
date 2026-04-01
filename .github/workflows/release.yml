@@ -50,16 +50,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install ".[build]"
         
     - name: Build executable (Linux / macOS)
       if: runner.os != 'Windows'
       run: |
         pyinstaller --noconfirm --onefile --windowed \
           --name "VacationPlanner-${{ steps.get_version.outputs.version }}-$RUNNER_OS" \
-          --paths src \
-          --hidden-import api_client \
-          --hidden-import map_renderer \
+          --add-data "src/data:data" \
+          --hidden-import src.api_client \
+          --hidden-import src.map_renderer \
           --collect-all customtkinter \
           --collect-all folium \
           --collect-all branca \
@@ -73,9 +73,9 @@ jobs:
       run: |
         pyinstaller --noconfirm --onefile --windowed `
           --name "VacationPlanner-${{ steps.get_version.outputs.version }}-$env:RUNNER_OS" `
-          --paths src `
-          --hidden-import api_client `
-          --hidden-import map_renderer `
+          --add-data "src/data;data" `
+          --hidden-import src.api_client `
+          --hidden-import src.map_renderer `
           --collect-all customtkinter `
           --collect-all folium `
           --collect-all branca `

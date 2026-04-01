@@ -28,8 +28,6 @@ ENV/
 
 # Vacation Planner Local Files
 *.html
-!README.md
-!requirements.txt
 
 # OS
 .DS_Store

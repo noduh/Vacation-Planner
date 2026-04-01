@@ -7,9 +7,9 @@ import threading
 import sys
 import webbrowser
 
-from api_client import get_coordinates
-from map_renderer import build_map
-from version import VERSION
+from .api_client import get_coordinates
+from .map_renderer import build_map
+from .version import VERSION
 
 # Setup Default Themes
 ctk.set_appearance_mode("Dark")
@@ -133,14 +133,22 @@ class VacationPlannerApp(ctk.CTk):
         self.status_label = ctk.CTkLabel(self.action_frame, text="Ready.", font=ctk.CTkFont(size=12), text_color="#71717a")
         self.status_label.grid(row=1, column=0, pady=(10, 0))
 
-        # Handle frozen bundled environment resolving
+        # data_dir: where bundled/installed package data lives (CSV).
+        # In a --onefile PyInstaller build, --add-data files land in sys._MEIPASS.
+        # When installed via pip/uv, data/ is inside the src package directory.
         if getattr(sys, 'frozen', False):
-            self.base_dir = os.path.dirname(os.path.abspath(sys.executable))
+            self.data_dir = sys._MEIPASS
         else:
-            self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.data_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # output_dir: where generated HTML maps are saved (next to exe or cwd).
+        if getattr(sys, 'frozen', False):
+            self.output_dir = os.path.dirname(os.path.abspath(sys.executable))
+        else:
+            self.output_dir = os.getcwd()
 
         # Auto-load default CSV if present
-        default_csv = os.path.join(self.base_dir, "data", "vacation_destinations.csv")
+        default_csv = os.path.join(self.data_dir, "data", "vacation_destinations.csv")
         if os.path.exists(default_csv):
             self.csv_path_var.set(default_csv)
             self._load_csv(default_csv)
@@ -229,10 +237,10 @@ class VacationPlannerApp(ctk.CTk):
 
             # UNIQ FILENAME LOGIC
             safe_name = "".join([c for c in map_name if c.isalnum() or c in (' ', '.', '_')]).strip()
-            output_file = os.path.join(self.base_dir, f"{safe_name}.html")
+            output_file = os.path.join(self.output_dir, f"{safe_name}.html")
             counter = 1
             while os.path.exists(output_file):
-                output_file = os.path.join(self.base_dir, f"{safe_name} ({counter}).html")
+                output_file = os.path.join(self.output_dir, f"{safe_name} ({counter}).html")
                 counter += 1
             
             interactive_map.save(output_file)

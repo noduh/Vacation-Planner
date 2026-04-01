@@ -16,9 +16,17 @@ dependencies = [
     "customtkinter==5.2.2",
 ]
 
+[project.optional-dependencies]
+build = [
+    "pyinstaller",
+]
+
 [project.scripts]
 vacation-planner = "src.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*"]
+
+[tool.setuptools.package-data]
+src = ["data/*.csv"]

@@ -11,6 +11,12 @@ A modern, high-end Python desktop application for planning vacations and road tr
 
 ## 🚀 Setup and Installation
 
+> **Linux prerequisite:** `tkinter` is not bundled with Python on most Linux distributions. Install it before proceeding:
+> ```bash
+> sudo apt-get install python3-tk   # Debian / Ubuntu
+> sudo dnf install python3-tkinter  # Fedora / RHEL
+> ```
+
 ### Using pip (recommended)
 
 ```bash
@@ -38,13 +44,13 @@ uv sync
    ```
 2. Run the application:
    ```bash
-   python src/main.py
+   python -m src.main
    ```
 
 ## 📦 Creating a Standalone Binary
 To build a portable version for your OS:
 ```bash
-.venv/bin/pyinstaller --noconfirm --onefile --windowed --name "VacationPlanner" --add-data "src:src" --add-data "data:data" --paths src --collect-all customtkinter --collect-all folium --collect-all branca --collect-all geopy --collect-all pandas --collect-all requests VacationPlanner.py
+.venv/bin/pyinstaller --noconfirm --onefile --windowed --name "VacationPlanner" --add-data "src/data:data" --collect-all customtkinter --collect-all folium --collect-all branca --collect-all geopy --collect-all pandas --collect-all requests VacationPlanner.py
 ```
 
 ## 📂 Data Format

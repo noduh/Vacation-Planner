@@ -1,6 +1,6 @@
 import folium
 import pandas as pd
-from api_client import get_osrm_route
+from .api_client import get_osrm_route
 
 def format_time(seconds: float) -> str:
     m, s = divmod(int(seconds), 60)
