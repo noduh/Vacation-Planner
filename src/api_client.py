@@ -21,7 +21,7 @@ def get_osrm_route(start_lat: float, start_lon: float, end_lat: float, end_lon: 
     """
     url = f"{OSRM_BASE_URL}/{start_lon},{start_lat};{end_lon},{end_lat}?overview=full&geometries=geojson"
     try:
-        req = requests.get(url, timeout=10)
+        req = requests.get(url, timeout=60)
         req.raise_for_status()
         data = req.json()
         if data.get("code") == "Ok" and "routes" in data and len(data["routes"]) > 0:
